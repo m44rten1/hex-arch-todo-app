@@ -2,6 +2,8 @@ import type { FastifyInstance } from "fastify";
 import { projectId } from "@todo/core/domain/shared/index.js";
 import type { CreateProjectHandler } from "@todo/core/application/usecases/projects/CreateProjectHandler.js";
 import type { UpdateProjectHandler } from "@todo/core/application/usecases/projects/UpdateProjectHandler.js";
+import type { ArchiveProjectHandler } from "@todo/core/application/usecases/projects/ArchiveProjectHandler.js";
+import type { UnarchiveProjectHandler } from "@todo/core/application/usecases/projects/UnarchiveProjectHandler.js";
 import type { ListProjectsHandler } from "@todo/core/application/usecases/queries/ListProjectsHandler.js";
 import type { GetProjectHandler } from "@todo/core/application/usecases/queries/GetProjectHandler.js";
 import { createProjectSchema, updateProjectSchema } from "../schemas/projectSchemas.js";
@@ -10,6 +12,8 @@ import { domainErrorToHttp, zodValidationError } from "../middleware/errorMapper
 export interface ProjectHandlers {
   createProject: CreateProjectHandler;
   updateProject: UpdateProjectHandler;
+  archiveProject: ArchiveProjectHandler;
+  unarchiveProject: UnarchiveProjectHandler;
   listProjects: ListProjectsHandler;
   getProject: GetProjectHandler;
 }
@@ -50,6 +54,32 @@ export function registerProjectRoutes(
       projectId: projectId(request.params.id),
       name: parsed.data.name,
       color: parsed.data.color,
+    }, request.ctx);
+
+    if (!result.ok) {
+      const httpErr = domainErrorToHttp(result.error);
+      return reply.status(httpErr.statusCode).send(httpErr.body);
+    }
+
+    return reply.send(result.value);
+  });
+
+  app.post<{ Params: { id: string } }>("/projects/:id/archive", async (request, reply) => {
+    const result = await handlers.archiveProject.execute({
+      projectId: projectId(request.params.id),
+    }, request.ctx);
+
+    if (!result.ok) {
+      const httpErr = domainErrorToHttp(result.error);
+      return reply.status(httpErr.statusCode).send(httpErr.body);
+    }
+
+    return reply.send(result.value);
+  });
+
+  app.post<{ Params: { id: string } }>("/projects/:id/unarchive", async (request, reply) => {
+    const result = await handlers.unarchiveProject.execute({
+      projectId: projectId(request.params.id),
     }, request.ctx);
 
     if (!result.ok) {
