@@ -1,5 +1,5 @@
 import type { Task } from "@todo/core/domain/task/Task.js";
-import type { TaskId, ProjectId, WorkspaceId } from "@todo/core/domain/shared/index.js";
+import type { TaskId, ProjectId, WorkspaceId, TagId } from "@todo/core/domain/shared/index.js";
 import type { TaskRepo } from "@todo/core/application/ports/outbound/TaskRepo.js";
 
 export class InMemoryTaskRepo implements TaskRepo {
@@ -40,6 +40,12 @@ export class InMemoryTaskRepo implements TaskRepo {
 
   async findByProject(projectId: ProjectId): Promise<Task[]> {
     return [...this.tasks.values()].filter(t => t.projectId === projectId && t.deletedAt === null);
+  }
+
+  async findByTag(tId: TagId, wsId: WorkspaceId): Promise<Task[]> {
+    return [...this.tasks.values()].filter(
+      t => t.workspaceId === wsId && t.tagIds.includes(tId) && t.deletedAt === null,
+    );
   }
 
   clear(): void {

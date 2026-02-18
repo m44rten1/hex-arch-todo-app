@@ -1,4 +1,4 @@
-import type { TaskId, ProjectId, WorkspaceId, UserId, Result, ValidationError, InvalidStateTransitionError } from "../shared/index.js";
+import type { TaskId, ProjectId, WorkspaceId, UserId, TagId, Result, ValidationError, InvalidStateTransitionError } from "../shared/index.js";
 import { ok, err } from "../shared/index.js";
 import type { Task, TaskStatus } from "./Task.js";
 
@@ -17,6 +17,7 @@ export interface CreateTaskParams {
   readonly projectId?: ProjectId;
   readonly dueAt?: Date;
   readonly notes?: string;
+  readonly tagIds?: readonly TagId[];
 }
 
 export interface UpdateTaskParams {
@@ -24,6 +25,7 @@ export interface UpdateTaskParams {
   readonly notes?: string | null;
   readonly projectId?: ProjectId | null;
   readonly dueAt?: Date | null;
+  readonly tagIds?: readonly TagId[];
   readonly now: Date;
 }
 
@@ -49,6 +51,7 @@ export function createTask(params: CreateTaskParams): Result<Task, TaskValidatio
     notes: params.notes?.trim() ?? null,
     projectId: params.projectId ?? null,
     dueAt: params.dueAt ?? null,
+    tagIds: params.tagIds ?? [],
     completedAt: null,
     deletedAt: null,
     createdAt: params.now,
@@ -134,6 +137,7 @@ function applyUpdate(task: Task, params: UpdateTaskParams & { title?: string }):
     notes: params.notes !== undefined ? (params.notes?.trim() ?? null) : task.notes,
     projectId: params.projectId !== undefined ? params.projectId : task.projectId,
     dueAt: params.dueAt !== undefined ? params.dueAt : task.dueAt,
+    tagIds: params.tagIds !== undefined ? params.tagIds : task.tagIds,
     updatedAt: params.now,
   };
 }

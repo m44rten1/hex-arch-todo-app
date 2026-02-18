@@ -1,7 +1,7 @@
 import type { Task } from "@todo/core/domain/task/Task.js";
 import type { TaskStatus } from "@todo/core/domain/task/Task.js";
-import type { TaskId, ProjectId, WorkspaceId } from "@todo/core/domain/shared/index.js";
-import { taskId, projectId, workspaceId, userId } from "@todo/core/domain/shared/index.js";
+import type { TaskId, ProjectId, WorkspaceId, TagId } from "@todo/core/domain/shared/index.js";
+import { taskId, projectId, workspaceId, userId, tagId } from "@todo/core/domain/shared/index.js";
 import type { TaskRepo } from "@todo/core/application/ports/outbound/TaskRepo.js";
 import type { DbPool } from "./pool.js";
 
@@ -20,7 +20,7 @@ interface TaskRow {
   workspace_id: string;
 }
 
-function rowToTask(row: TaskRow): Task {
+function rowToTask(row: TaskRow, tagIds: readonly TagId[]): Task {
   return {
     id: taskId(row.id),
     title: row.title,
@@ -28,6 +28,7 @@ function rowToTask(row: TaskRow): Task {
     notes: row.notes,
     projectId: row.project_id ? projectId(row.project_id) : null,
     dueAt: row.due_at,
+    tagIds,
     completedAt: row.completed_at,
     deletedAt: row.deleted_at,
     createdAt: row.created_at,
@@ -50,7 +51,9 @@ export class PgTaskRepo implements TaskRepo {
       [id],
     );
     const row = rows[0];
-    return row ? rowToTask(row) : null;
+    if (!row) return null;
+    const tagIds = await this.loadTagIds([row.id]);
+    return rowToTask(row, tagIds.get(row.id) ?? []);
   }
 
   async save(task: Task): Promise<void> {
@@ -67,20 +70,12 @@ export class PgTaskRepo implements TaskRepo {
          deleted_at = EXCLUDED.deleted_at,
          updated_at = EXCLUDED.updated_at`,
       [
-        task.id,
-        task.title,
-        task.status,
-        task.notes,
-        task.projectId,
-        task.dueAt,
-        task.completedAt,
-        task.deletedAt,
-        task.createdAt,
-        task.updatedAt,
-        task.ownerUserId,
-        task.workspaceId,
+        task.id, task.title, task.status, task.notes, task.projectId,
+        task.dueAt, task.completedAt, task.deletedAt, task.createdAt,
+        task.updatedAt, task.ownerUserId, task.workspaceId,
       ],
     );
+    await this.syncTagIds(task.id, task.tagIds);
   }
 
   async findInbox(wsId: WorkspaceId): Promise<Task[]> {
@@ -88,7 +83,7 @@ export class PgTaskRepo implements TaskRepo {
       "SELECT * FROM tasks WHERE workspace_id = $1 AND project_id IS NULL AND status = 'active' AND deleted_at IS NULL ORDER BY created_at DESC",
       [wsId],
     );
-    return rows.map(rowToTask);
+    return this.hydrateTags(rows);
   }
 
   async findCompletedInbox(wsId: WorkspaceId): Promise<Task[]> {
@@ -96,7 +91,7 @@ export class PgTaskRepo implements TaskRepo {
       "SELECT * FROM tasks WHERE workspace_id = $1 AND project_id IS NULL AND status = 'completed' AND deleted_at IS NULL ORDER BY completed_at DESC",
       [wsId],
     );
-    return rows.map(rowToTask);
+    return this.hydrateTags(rows);
   }
 
   async findDueOnOrBefore(wsId: WorkspaceId, date: Date): Promise<Task[]> {
@@ -104,7 +99,7 @@ export class PgTaskRepo implements TaskRepo {
       "SELECT * FROM tasks WHERE workspace_id = $1 AND status = 'active' AND due_at <= $2 AND deleted_at IS NULL ORDER BY due_at ASC",
       [wsId, date],
     );
-    return rows.map(rowToTask);
+    return this.hydrateTags(rows);
   }
 
   async findByProject(projId: ProjectId): Promise<Task[]> {
@@ -112,6 +107,53 @@ export class PgTaskRepo implements TaskRepo {
       "SELECT * FROM tasks WHERE project_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC",
       [projId],
     );
-    return rows.map(rowToTask);
+    return this.hydrateTags(rows);
+  }
+
+  async findByTag(tId: TagId, wsId: WorkspaceId): Promise<Task[]> {
+    const { rows } = await this.pool.query<TaskRow>(
+      `SELECT t.* FROM tasks t
+       JOIN task_tags tt ON tt.task_id = t.id
+       WHERE tt.tag_id = $1 AND t.workspace_id = $2 AND t.deleted_at IS NULL
+       ORDER BY t.created_at DESC`,
+      [tId, wsId],
+    );
+    return this.hydrateTags(rows);
+  }
+
+  private async hydrateTags(rows: TaskRow[]): Promise<Task[]> {
+    if (rows.length === 0) return [];
+    const ids = rows.map(r => r.id);
+    const tagMap = await this.loadTagIds(ids);
+    return rows.map(r => rowToTask(r, tagMap.get(r.id) ?? []));
+  }
+
+  private async loadTagIds(taskIds: string[]): Promise<Map<string, TagId[]>> {
+    if (taskIds.length === 0) return new Map();
+    const placeholders = taskIds.map((_, i) => `$${i + 1}`).join(", ");
+    const { rows } = await this.pool.query<{ task_id: string; tag_id: string }>(
+      `SELECT task_id, tag_id FROM task_tags WHERE task_id IN (${placeholders})`,
+      taskIds,
+    );
+    const map = new Map<string, TagId[]>();
+    for (const row of rows) {
+      let arr = map.get(row.task_id);
+      if (!arr) {
+        arr = [];
+        map.set(row.task_id, arr);
+      }
+      arr.push(tagId(row.tag_id));
+    }
+    return map;
+  }
+
+  private async syncTagIds(tId: TaskId, tagIds: readonly TagId[]): Promise<void> {
+    await this.pool.query("DELETE FROM task_tags WHERE task_id = $1", [tId]);
+    for (const tgId of tagIds) {
+      await this.pool.query(
+        "INSERT INTO task_tags (task_id, tag_id) VALUES ($1, $2)",
+        [tId, tgId],
+      );
+    }
   }
 }

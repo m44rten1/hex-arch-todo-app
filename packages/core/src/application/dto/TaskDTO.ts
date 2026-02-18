@@ -1,5 +1,5 @@
 import type { Task, TaskStatus } from "../../domain/task/Task.js";
-import type { TaskId, ProjectId, WorkspaceId, UserId } from "../../domain/shared/index.js";
+import type { TaskId, ProjectId, WorkspaceId, UserId, TagId } from "../../domain/shared/index.js";
 
 export interface TaskDTO {
   readonly id: TaskId;
@@ -9,6 +9,7 @@ export interface TaskDTO {
   readonly projectId: ProjectId | null;
   readonly dueAt: string | null;
   readonly completedAt: string | null;
+  readonly tagIds: readonly TagId[];
   readonly deletedAt: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
@@ -25,6 +26,7 @@ export function toTaskDTO(task: Task): TaskDTO {
     projectId: task.projectId,
     dueAt: task.dueAt?.toISOString() ?? null,
     completedAt: task.completedAt?.toISOString() ?? null,
+    tagIds: task.tagIds,
     deletedAt: task.deletedAt?.toISOString() ?? null,
     createdAt: task.createdAt.toISOString(),
     updatedAt: task.updatedAt.toISOString(),
