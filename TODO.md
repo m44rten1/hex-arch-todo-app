@@ -10,7 +10,7 @@ What exists today: auth (register/login/logout), task CRUD (create/update/comple
 
 - [x] **Cancel task** — handler + HTTP route (domain rule exists, no use case or endpoint)
 - [x] **Soft delete** — replace hard delete with tombstone (`canceled`/`deleted` status or flag) for sync reliability
-- [ ] **Project management** — update project (rename, color), archive/unarchive project, delete project
+- [x] **Project management** — update project (rename, color), archive/unarchive project, delete project
 - [ ] **Tags** — Tag entity, CRUD, task–tag association (join), filter tasks by tag
 - [ ] **Upcoming view** — query tasks due in next 7/14/30 days, grouped by day
 - [ ] **Search** — full-text search over title + notes, with filters (status, project, tag, due range)
