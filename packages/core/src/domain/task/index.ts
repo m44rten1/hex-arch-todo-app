@@ -4,6 +4,7 @@ export {
   completeTask,
   uncompleteTask,
   cancelTask,
+  deleteTask,
   updateTask,
   isOverdue,
   isDueOn,

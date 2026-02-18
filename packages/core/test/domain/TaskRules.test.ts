@@ -4,6 +4,7 @@ import {
   completeTask,
   uncompleteTask,
   cancelTask,
+  deleteTask,
   updateTask,
   isOverdue,
   isDueOn,
@@ -149,6 +150,40 @@ describe("cancelTask", () => {
   it("rejects canceling an already canceled task", () => {
     const task = activeTask({ status: "canceled" });
     const result = cancelTask(task, NOW);
+    expect(result.ok).toBe(false);
+  });
+});
+
+describe("deleteTask", () => {
+  it("soft-deletes an active task", () => {
+    const result = deleteTask(activeTask(), NOW);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.deletedAt).toEqual(NOW);
+    expect(result.value.status).toBe("active");
+  });
+
+  it("soft-deletes a completed task", () => {
+    const task = activeTask({ status: "completed", completedAt: NOW });
+    const result = deleteTask(task, NOW);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.deletedAt).toEqual(NOW);
+    expect(result.value.status).toBe("completed");
+  });
+
+  it("soft-deletes a canceled task", () => {
+    const task = activeTask({ status: "canceled" });
+    const result = deleteTask(task, NOW);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.deletedAt).toEqual(NOW);
+    expect(result.value.status).toBe("canceled");
+  });
+
+  it("rejects deleting an already deleted task", () => {
+    const task = activeTask({ deletedAt: NOW });
+    const result = deleteTask(task, NOW);
     expect(result.ok).toBe(false);
   });
 });

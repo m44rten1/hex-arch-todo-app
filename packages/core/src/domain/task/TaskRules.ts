@@ -102,6 +102,20 @@ export function cancelTask(task: Task, now: Date): Result<Task, TaskStateError> 
   return ok({ ...task, status: "canceled" as const, updatedAt: now });
 }
 
+export function deleteTask(task: Task, now: Date): Result<Task, TaskStateError> {
+  if (task.deletedAt !== null) {
+    return err({
+      type: "InvalidStateTransitionError",
+      entity: "Task",
+      from: "deleted",
+      to: "deleted",
+      message: "Task is already deleted",
+    });
+  }
+
+  return ok({ ...task, deletedAt: now, updatedAt: now });
+}
+
 export function updateTask(task: Task, params: UpdateTaskParams): Result<Task, TaskValidationError> {
   if (params.title !== undefined) {
     const titleResult = validateTitle(params.title);
