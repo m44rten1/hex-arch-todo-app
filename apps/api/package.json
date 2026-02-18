@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc --build",
     "dev": "tsx watch src/infrastructure/main.ts",
+    "dev:mem": "tsx src/infrastructure/dev.ts",
     "start": "node dist/infrastructure/main.js",
     "test": "vitest run",
     "test:watch": "vitest",
