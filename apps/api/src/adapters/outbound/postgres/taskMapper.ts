@@ -1,6 +1,6 @@
 import type { Task, TaskStatus } from "@todo/core/domain/task/Task.js";
 import type { TagId } from "@todo/core/domain/shared/index.js";
-import { taskId, projectId, workspaceId, userId } from "@todo/core/domain/shared/index.js";
+import { taskId, projectId, workspaceId, userId, recurrenceRuleId } from "@todo/core/domain/shared/index.js";
 import type { TasksTable } from "./schema.js";
 
 export function rowToTask(row: TasksTable, tagIds: readonly TagId[]): Task {
@@ -16,7 +16,7 @@ export function rowToTask(row: TasksTable, tagIds: readonly TagId[]): Task {
     deletedAt: row.deleted_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    recurrenceRuleId: null,
+    recurrenceRuleId: row.recurrence_rule_id ? recurrenceRuleId(row.recurrence_rule_id) : null,
     ownerUserId: userId(row.owner_user_id),
     workspaceId: workspaceId(row.workspace_id),
   };

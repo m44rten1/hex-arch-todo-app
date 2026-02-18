@@ -37,6 +37,7 @@ export interface TasksTable {
   deleted_at: Date | null;
   created_at: Date;
   updated_at: Date;
+  recurrence_rule_id: string | null;
   owner_user_id: string;
   workspace_id: string;
 }
@@ -65,6 +66,17 @@ export interface RemindersTable {
   updated_at: Date;
 }
 
+export interface RecurrenceRulesTable {
+  id: string;
+  frequency: string;
+  interval: number;
+  days_of_week: string | null;
+  day_of_month: number | null;
+  mode: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface MigrationsTable {
   name: string;
   applied_at: Generated<Date>;
@@ -78,5 +90,6 @@ export interface Database {
   tags: TagsTable;
   task_tags: TaskTagsTable;
   reminders: RemindersTable;
+  recurrence_rules: RecurrenceRulesTable;
   _migrations: MigrationsTable;
 }

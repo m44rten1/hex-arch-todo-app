@@ -39,6 +39,7 @@ export class PgTaskRepo implements TaskRepo {
         deleted_at: task.deletedAt,
         created_at: task.createdAt,
         updated_at: task.updatedAt,
+        recurrence_rule_id: task.recurrenceRuleId,
         owner_user_id: task.ownerUserId,
         workspace_id: task.workspaceId,
       })
@@ -51,6 +52,7 @@ export class PgTaskRepo implements TaskRepo {
           due_at: task.dueAt,
           completed_at: task.completedAt,
           deleted_at: task.deletedAt,
+          recurrence_rule_id: task.recurrenceRuleId,
           updated_at: task.updatedAt,
         }),
       )
