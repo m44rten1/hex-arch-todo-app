@@ -1,24 +1,21 @@
 import type { Result, ConflictError, ValidationError } from "../../../domain/shared/index.js";
 import { err } from "../../../domain/shared/index.js";
-import { validatePassword, createUser } from "../../../domain/user/UserRules.js";
-import { createWorkspace } from "../../../domain/workspace/WorkspaceRules.js";
+import { validatePassword } from "../../../domain/user/UserRules.js";
+import { createRegistration } from "../../../domain/user/UserRegistration.js";
 import type { AuthDTO } from "../../dto/AuthDTO.js";
 import { toUserDTO } from "../../dto/AuthDTO.js";
 import type { RegisterUserCommand } from "../../ports/inbound/commands/RegisterUser.js";
-import type { UserRepo } from "../../ports/outbound/UserRepo.js";
-import type { WorkspaceRepo } from "../../ports/outbound/WorkspaceRepo.js";
+import type { UserRegistrationStore } from "../../ports/outbound/UserRegistrationStore.js";
 import type { PasswordHasher } from "../../ports/outbound/PasswordHasher.js";
 import type { TokenService } from "../../ports/outbound/TokenService.js";
 import type { IdGenerator } from "../../ports/outbound/IdGenerator.js";
 import type { Clock } from "../../../domain/shared/Clock.js";
 import type { EventBus } from "../../ports/outbound/EventBus.js";
-import type { UserRegistered } from "../../../domain/user/UserEvents.js";
 
 export type RegisterUserError = ValidationError | ConflictError;
 
 export class RegisterUserHandler {
-  private readonly userRepo: UserRepo;
-  private readonly workspaceRepo: WorkspaceRepo;
+  private readonly registrationStore: UserRegistrationStore;
   private readonly passwordHasher: PasswordHasher;
   private readonly tokenService: TokenService;
   private readonly idGenerator: IdGenerator;
@@ -26,16 +23,14 @@ export class RegisterUserHandler {
   private readonly eventBus: EventBus;
 
   constructor(
-    userRepo: UserRepo,
-    workspaceRepo: WorkspaceRepo,
+    registrationStore: UserRegistrationStore,
     passwordHasher: PasswordHasher,
     tokenService: TokenService,
     idGenerator: IdGenerator,
     clock: Clock,
     eventBus: EventBus,
   ) {
-    this.userRepo = userRepo;
-    this.workspaceRepo = workspaceRepo;
+    this.registrationStore = registrationStore;
     this.passwordHasher = passwordHasher;
     this.tokenService = tokenService;
     this.idGenerator = idGenerator;
@@ -49,39 +44,23 @@ export class RegisterUserHandler {
 
     const now = this.clock.now();
     const passwordHash = await this.passwordHasher.hash(cmd.password);
-
     const userId = this.idGenerator.userId();
-    const userResult = createUser({ id: userId, email: cmd.email, passwordHash, now });
-    if (!userResult.ok) return userResult;
+    const workspaceId = this.idGenerator.workspaceId();
 
-    const existing = await this.userRepo.findByEmail(userResult.value.email);
-    if (existing !== null) {
+    const registrationResult = createRegistration({ userId, workspaceId, email: cmd.email, passwordHash, now });
+    if (!registrationResult.ok) return registrationResult;
+
+    const { user, workspace, event } = registrationResult.value;
+
+    const exists = await this.registrationStore.existsByEmail(user.email);
+    if (exists) {
       return err({ type: "ConflictError", entity: "User", message: "Email is already registered" });
     }
 
-    const wsId = this.idGenerator.workspaceId();
-    const wsResult = createWorkspace({
-      id: wsId,
-      name: "Personal",
-      ownerUserId: userId,
-      now,
-    });
-    if (!wsResult.ok) return wsResult;
-
-    await this.userRepo.save(userResult.value);
-    await this.workspaceRepo.save(wsResult.value);
-
-    const event: UserRegistered = {
-      type: "UserRegistered",
-      userId,
-      email: userResult.value.email,
-      workspaceId: wsId,
-      occurredAt: now,
-    };
+    await this.registrationStore.save(user, workspace);
     await this.eventBus.publish(event);
 
-    const token = await this.tokenService.generate({ userId, workspaceId: wsId });
-
-    return { ok: true, value: { token, user: toUserDTO(userResult.value) } };
+    const token = await this.tokenService.generate({ userId, workspaceId });
+    return { ok: true, value: { token, user: toUserDTO(user) } };
   }
 }
