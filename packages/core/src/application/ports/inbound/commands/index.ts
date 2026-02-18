@@ -18,3 +18,5 @@ export type { CreateReminderCommand } from "./CreateReminder.js";
 export type { UpdateReminderCommand } from "./UpdateReminder.js";
 export type { DismissReminderCommand } from "./DismissReminder.js";
 export type { DeleteReminderCommand } from "./DeleteReminder.js";
+export type { SetRecurrenceRuleCommand } from "./SetRecurrenceRule.js";
+export type { RemoveRecurrenceRuleCommand } from "./RemoveRecurrenceRule.js";
