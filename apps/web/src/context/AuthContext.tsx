@@ -1,29 +1,11 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-  type ReactNode,
-} from "react";
+import { useState, useCallback, useMemo, useEffect, type ReactNode } from "react";
 import { api, type AuthResponse } from "@/lib/api-client";
+import { AuthContext, type AuthState } from "./authState";
 
 interface User {
   readonly id: string;
   readonly email: string;
 }
-
-interface AuthState {
-  readonly user: User | null;
-  readonly isAuthenticated: boolean;
-  readonly isLoading: boolean;
-  readonly login: (email: string, password: string) => Promise<void>;
-  readonly register: (email: string, password: string) => Promise<void>;
-  readonly logout: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthState | null>(null);
 
 function toUser(data: AuthResponse): User {
   return { id: data.user.id, email: data.user.email };
@@ -71,10 +53,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return <AuthContext value={value}>{children}</AuthContext>;
-}
-
-export function useAuth(): AuthState {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
 }

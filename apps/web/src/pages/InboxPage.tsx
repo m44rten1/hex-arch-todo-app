@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiRequestError, type TaskDTO } from "@/lib/api-client";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/useAuth";
 import { TaskItem } from "@/components/TaskItem";
 import { AddTaskInput } from "@/components/AddTaskInput";
 import { ChevronDown, ChevronRight, Inbox } from "lucide-react";
@@ -37,11 +37,14 @@ export function InboxPage() {
     void fetchInbox();
   }, [fetchInbox]);
 
-  function handleApiError(err: unknown) {
-    if (err instanceof ApiRequestError && err.status === 401) {
-      void logout();
-    }
-  }
+  const handleApiError = useCallback(
+    (err: unknown) => {
+      if (err instanceof ApiRequestError && err.status === 401) {
+        void logout();
+      }
+    },
+    [logout],
+  );
 
   const handleAdd = useCallback(async (title: string) => {
     try {
@@ -51,7 +54,7 @@ export function InboxPage() {
       handleApiError(err);
       throw err;
     }
-  }, [logout]);
+  }, [handleApiError]);
 
   const handleToggleComplete = useCallback(async (taskId: string, currentlyCompleted: boolean) => {
     try {
@@ -69,7 +72,7 @@ export function InboxPage() {
     } catch (err) {
       handleApiError(err);
     }
-  }, [logout]);
+  }, [handleApiError]);
 
   const handleUpdate = useCallback(async (taskId: string, title: string) => {
     try {
@@ -79,7 +82,7 @@ export function InboxPage() {
     } catch (err) {
       handleApiError(err);
     }
-  }, [logout]);
+  }, [handleApiError]);
 
   const handleDelete = useCallback(async (taskId: string) => {
     try {
@@ -89,7 +92,7 @@ export function InboxPage() {
     } catch (err) {
       handleApiError(err);
     }
-  }, [logout]);
+  }, [handleApiError]);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
