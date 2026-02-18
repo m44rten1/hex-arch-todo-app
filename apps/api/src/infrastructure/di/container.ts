@@ -8,6 +8,7 @@ import { CreateProjectHandler } from "@todo/core/application/usecases/projects/C
 import { UpdateProjectHandler } from "@todo/core/application/usecases/projects/UpdateProjectHandler.js";
 import { ArchiveProjectHandler } from "@todo/core/application/usecases/projects/ArchiveProjectHandler.js";
 import { UnarchiveProjectHandler } from "@todo/core/application/usecases/projects/UnarchiveProjectHandler.js";
+import { DeleteProjectHandler } from "@todo/core/application/usecases/projects/DeleteProjectHandler.js";
 import { GetInboxHandler } from "@todo/core/application/usecases/queries/GetInboxHandler.js";
 import { GetCompletedInboxHandler } from "@todo/core/application/usecases/queries/GetCompletedInboxHandler.js";
 import { GetTodayViewHandler } from "@todo/core/application/usecases/queries/GetTodayViewHandler.js";
@@ -70,6 +71,7 @@ export function wireHandlers(deps: Dependencies): AppHandlers {
       updateProject: new UpdateProjectHandler(projectRepo, clock, eventBus),
       archiveProject: new ArchiveProjectHandler(projectRepo, clock, eventBus),
       unarchiveProject: new UnarchiveProjectHandler(projectRepo, clock, eventBus),
+      deleteProject: new DeleteProjectHandler(projectRepo, clock, eventBus),
       listProjects: new ListProjectsHandler(projectRepo),
       getProject: new GetProjectHandler(projectRepo, taskRepo),
     },

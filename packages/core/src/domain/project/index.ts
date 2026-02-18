@@ -17,4 +17,5 @@ export type {
   ProjectUpdated,
   ProjectArchived,
   ProjectUnarchived,
+  ProjectDeleted,
 } from "./ProjectEvents.js";

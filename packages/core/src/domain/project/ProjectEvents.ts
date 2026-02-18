@@ -22,8 +22,14 @@ export interface ProjectUnarchived extends DomainEvent {
   readonly projectId: ProjectId;
 }
 
+export interface ProjectDeleted extends DomainEvent {
+  readonly type: "ProjectDeleted";
+  readonly projectId: ProjectId;
+}
+
 export type ProjectEvent =
   | ProjectCreated
   | ProjectUpdated
   | ProjectArchived
-  | ProjectUnarchived;
+  | ProjectUnarchived
+  | ProjectDeleted;

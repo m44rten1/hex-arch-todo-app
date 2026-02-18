@@ -4,6 +4,7 @@ import type { CreateProjectHandler } from "@todo/core/application/usecases/proje
 import type { UpdateProjectHandler } from "@todo/core/application/usecases/projects/UpdateProjectHandler.js";
 import type { ArchiveProjectHandler } from "@todo/core/application/usecases/projects/ArchiveProjectHandler.js";
 import type { UnarchiveProjectHandler } from "@todo/core/application/usecases/projects/UnarchiveProjectHandler.js";
+import type { DeleteProjectHandler } from "@todo/core/application/usecases/projects/DeleteProjectHandler.js";
 import type { ListProjectsHandler } from "@todo/core/application/usecases/queries/ListProjectsHandler.js";
 import type { GetProjectHandler } from "@todo/core/application/usecases/queries/GetProjectHandler.js";
 import { createProjectSchema, updateProjectSchema } from "../schemas/projectSchemas.js";
@@ -14,6 +15,7 @@ export interface ProjectHandlers {
   updateProject: UpdateProjectHandler;
   archiveProject: ArchiveProjectHandler;
   unarchiveProject: UnarchiveProjectHandler;
+  deleteProject: DeleteProjectHandler;
   listProjects: ListProjectsHandler;
   getProject: GetProjectHandler;
 }
@@ -88,6 +90,19 @@ export function registerProjectRoutes(
     }
 
     return reply.send(result.value);
+  });
+
+  app.delete<{ Params: { id: string } }>("/projects/:id", async (request, reply) => {
+    const result = await handlers.deleteProject.execute({
+      projectId: projectId(request.params.id),
+    }, request.ctx);
+
+    if (!result.ok) {
+      const httpErr = domainErrorToHttp(result.error);
+      return reply.status(httpErr.statusCode).send(httpErr.body);
+    }
+
+    return reply.status(204).send();
   });
 
   app.get("/projects", async (request, reply) => {
