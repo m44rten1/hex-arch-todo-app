@@ -239,4 +239,73 @@ describe("Task routes", () => {
       expect(view.overdue).toHaveLength(1);
     });
   });
+
+  describe("GET /upcoming", () => {
+    it("returns tasks grouped by due date within default 7-day window", async () => {
+      ctx.idGen.setNextTaskId(taskId("t1"));
+      await ctx.app.inject({
+        method: "POST", url: "/tasks", headers: authHeaders(),
+        payload: { title: "Today", dueAt: "2025-06-15T10:00:00Z" },
+      });
+      ctx.idGen.setNextTaskId(taskId("t2"));
+      await ctx.app.inject({
+        method: "POST", url: "/tasks", headers: authHeaders(),
+        payload: { title: "In 3 days", dueAt: "2025-06-18T10:00:00Z" },
+      });
+      ctx.idGen.setNextTaskId(taskId("t3"));
+      await ctx.app.inject({
+        method: "POST", url: "/tasks", headers: authHeaders(),
+        payload: { title: "Beyond window", dueAt: "2025-06-30T10:00:00Z" },
+      });
+
+      const res = await ctx.app.inject({
+        method: "GET",
+        url: "/upcoming",
+        headers: { authorization: `Bearer ${token}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const view = res.json();
+      expect(view.days).toBe(7);
+      expect(view.groups).toHaveLength(2);
+      expect(view.groups[0].date).toBe("2025-06-15");
+      expect(view.groups[1].date).toBe("2025-06-18");
+    });
+
+    it("respects ?days=14 parameter", async () => {
+      ctx.idGen.setNextTaskId(taskId("t1"));
+      await ctx.app.inject({
+        method: "POST", url: "/tasks", headers: authHeaders(),
+        payload: { title: "Day 10", dueAt: "2025-06-25T10:00:00Z" },
+      });
+
+      const res7 = await ctx.app.inject({
+        method: "GET", url: "/upcoming?days=7",
+        headers: { authorization: `Bearer ${token}` },
+      });
+      const res14 = await ctx.app.inject({
+        method: "GET", url: "/upcoming?days=14",
+        headers: { authorization: `Bearer ${token}` },
+      });
+
+      expect(res7.json().groups).toHaveLength(0);
+      expect(res14.json().groups).toHaveLength(1);
+      expect(res14.json().days).toBe(14);
+    });
+
+    it("excludes overdue tasks", async () => {
+      ctx.idGen.setNextTaskId(taskId("t1"));
+      await ctx.app.inject({
+        method: "POST", url: "/tasks", headers: authHeaders(),
+        payload: { title: "Overdue", dueAt: "2025-06-14T10:00:00Z" },
+      });
+
+      const res = await ctx.app.inject({
+        method: "GET", url: "/upcoming",
+        headers: { authorization: `Bearer ${token}` },
+      });
+
+      expect(res.json().groups).toHaveLength(0);
+    });
+  });
 });
