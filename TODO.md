@@ -20,14 +20,14 @@ What exists today: auth (register/login/logout), task CRUD (create/update/comple
 
 ### Frontend (web)
 
-- [ ] **App shell & navigation** — sidebar with Inbox, Today, Upcoming, Projects, Tags sections
-- [ ] **Today view page**
-- [ ] **Upcoming view page**
-- [ ] **Project pages** — list, detail with task list, create/edit/archive
-- [ ] **Tags pages** — list, filter tasks by tag, manage tags
-- [ ] **Task detail / edit** — notes, due date, project, tags, complete/uncomplete/cancel
-- [ ] **Search UI**
-- [ ] **Reminder UI** — set/edit reminders on tasks
+- [x] **App shell & navigation** — sidebar with Inbox, Today, Upcoming, Projects, Tags sections
+- [x] **Today view page**
+- [x] **Upcoming view page**
+- [x] **Project pages** — list, detail with task list, create/edit/archive
+- [x] **Tags pages** — list, filter tasks by tag, manage tags
+- [x] **Task detail / edit** — notes, due date, project, tags, complete/uncomplete/cancel
+- [x] **Search UI**
+- [x] **Reminder UI** — set/edit reminders on tasks
 
 ### Offline & Sync
 
