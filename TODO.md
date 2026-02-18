@@ -64,6 +64,12 @@ What exists today: auth (register/login/logout), task CRUD (create/update/comple
 
 ---
 
+## Technical Debt
+
+- [x] **Unit of Work in `RegisterUserHandler`** — introduced `createRegistration()` domain function and `UserRegistrationStore` port; `PgUserRegistrationStore` wraps both inserts in a single transaction.
+
+---
+
 ## Cross-cutting (ongoing)
 
 - [ ] **Domain event subscribers** — events are published but nothing reacts to them yet; wire up side-effects (e.g. recurrence, reminders, audit)
