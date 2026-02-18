@@ -5,11 +5,13 @@ import { UncompleteTaskHandler } from "@todo/core/application/usecases/tasks/Unc
 import { DeleteTaskHandler } from "@todo/core/application/usecases/tasks/DeleteTaskHandler.js";
 import { CreateProjectHandler } from "@todo/core/application/usecases/projects/CreateProjectHandler.js";
 import { GetInboxHandler } from "@todo/core/application/usecases/queries/GetInboxHandler.js";
+import { GetCompletedInboxHandler } from "@todo/core/application/usecases/queries/GetCompletedInboxHandler.js";
 import { GetTodayViewHandler } from "@todo/core/application/usecases/queries/GetTodayViewHandler.js";
 import { ListProjectsHandler } from "@todo/core/application/usecases/queries/ListProjectsHandler.js";
 import { GetProjectHandler } from "@todo/core/application/usecases/queries/GetProjectHandler.js";
 import { RegisterUserHandler } from "@todo/core/application/usecases/auth/RegisterUserHandler.js";
 import { LoginUserHandler } from "@todo/core/application/usecases/auth/LoginUserHandler.js";
+import { GetMeHandler } from "@todo/core/application/usecases/auth/GetMeHandler.js";
 import type { TaskRepo } from "@todo/core/application/ports/outbound/TaskRepo.js";
 import type { ProjectRepo } from "@todo/core/application/ports/outbound/ProjectRepo.js";
 import type { UserRepo } from "@todo/core/application/ports/outbound/UserRepo.js";
@@ -55,6 +57,7 @@ export function wireHandlers(deps: Dependencies): AppHandlers {
       uncompleteTask: new UncompleteTaskHandler(taskRepo, clock, eventBus),
       deleteTask: new DeleteTaskHandler(taskRepo, clock, eventBus),
       getInbox: new GetInboxHandler(taskRepo),
+      getCompletedInbox: new GetCompletedInboxHandler(taskRepo),
       getTodayView: new GetTodayViewHandler(taskRepo, clock),
     },
     projects: {
@@ -68,6 +71,7 @@ export function wireHandlers(deps: Dependencies): AppHandlers {
         idGenerator, clock, eventBus,
       ),
       login: new LoginUserHandler(userRepo, workspaceRepo, passwordHasher, tokenService),
+      getMe: new GetMeHandler(userRepo),
     },
   };
 }

@@ -6,6 +6,7 @@ export interface TaskRepo {
   save(task: Task): Promise<void>;
   delete(id: TaskId): Promise<void>;
   findInbox(workspaceId: WorkspaceId): Promise<Task[]>;
+  findCompletedInbox(workspaceId: WorkspaceId): Promise<Task[]>;
   findDueOnOrBefore(workspaceId: WorkspaceId, date: Date): Promise<Task[]>;
   findByProject(projectId: ProjectId): Promise<Task[]>;
 }

@@ -87,6 +87,14 @@ export class PgTaskRepo implements TaskRepo {
     return rows.map(rowToTask);
   }
 
+  async findCompletedInbox(wsId: WorkspaceId): Promise<Task[]> {
+    const { rows } = await this.pool.query<TaskRow>(
+      "SELECT * FROM tasks WHERE workspace_id = $1 AND project_id IS NULL AND status = 'completed' ORDER BY completed_at DESC",
+      [wsId],
+    );
+    return rows.map(rowToTask);
+  }
+
   async findDueOnOrBefore(wsId: WorkspaceId, date: Date): Promise<Task[]> {
     const { rows } = await this.pool.query<TaskRow>(
       "SELECT * FROM tasks WHERE workspace_id = $1 AND status = 'active' AND due_at <= $2 ORDER BY due_at ASC",

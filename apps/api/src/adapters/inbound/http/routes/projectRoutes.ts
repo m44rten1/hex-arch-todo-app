@@ -4,7 +4,7 @@ import type { CreateProjectHandler } from "@todo/core/application/usecases/proje
 import type { ListProjectsHandler } from "@todo/core/application/usecases/queries/ListProjectsHandler.js";
 import type { GetProjectHandler } from "@todo/core/application/usecases/queries/GetProjectHandler.js";
 import { createProjectSchema } from "../schemas/projectSchemas.js";
-import { domainErrorToHttp } from "../middleware/errorMapper.js";
+import { domainErrorToHttp, zodValidationError } from "../middleware/errorMapper.js";
 
 export interface ProjectHandlers {
   createProject: CreateProjectHandler;
@@ -20,10 +20,8 @@ export function registerProjectRoutes(
     const ctx = request.ctx;
     const parsed = createProjectSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.status(400).send({
-        code: "VALIDATION_ERROR",
-        message: parsed.error.issues[0]?.message ?? "Invalid request body",
-      });
+      const err = zodValidationError(parsed.error);
+      return reply.status(err.statusCode).send(err.body);
     }
 
     const result = await handlers.createProject.execute(

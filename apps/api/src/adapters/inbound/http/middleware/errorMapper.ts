@@ -1,11 +1,23 @@
 import type { DomainError } from "@todo/core/domain/shared/index.js";
+import type { ZodError } from "zod";
 
-interface HttpError {
+export interface HttpError {
   readonly statusCode: number;
   readonly body: {
     readonly code: string;
     readonly message: string;
     readonly field?: string;
+  };
+}
+
+export function unauthorized(message: string): HttpError {
+  return { statusCode: 401, body: { code: "UNAUTHORIZED", message } };
+}
+
+export function zodValidationError(error: ZodError): HttpError {
+  return {
+    statusCode: 400,
+    body: { code: "VALIDATION_ERROR", message: error.issues[0]?.message ?? "Invalid request body" },
   };
 }
 

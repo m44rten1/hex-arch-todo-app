@@ -57,6 +57,10 @@ export async function registerAndGetToken(ctx: TestContext, email = "test@exampl
     headers: { "content-type": "application/json" },
     payload: { email, password },
   });
-  const body = res.json() as { token: string };
-  return body.token;
+
+  const setCookie = res.headers["set-cookie"];
+  const cookieStr = Array.isArray(setCookie) ? setCookie[0] : setCookie;
+  const match = cookieStr?.match(/token=([^;]+)/);
+  if (!match?.[1]) throw new Error("No token cookie in register response");
+  return match[1];
 }

@@ -6,9 +6,10 @@ import type { CompleteTaskHandler } from "@todo/core/application/usecases/tasks/
 import type { UncompleteTaskHandler } from "@todo/core/application/usecases/tasks/UncompleteTaskHandler.js";
 import type { DeleteTaskHandler } from "@todo/core/application/usecases/tasks/DeleteTaskHandler.js";
 import type { GetInboxHandler } from "@todo/core/application/usecases/queries/GetInboxHandler.js";
+import type { GetCompletedInboxHandler } from "@todo/core/application/usecases/queries/GetCompletedInboxHandler.js";
 import type { GetTodayViewHandler } from "@todo/core/application/usecases/queries/GetTodayViewHandler.js";
 import { createTaskSchema, updateTaskSchema } from "../schemas/taskSchemas.js";
-import { domainErrorToHttp } from "../middleware/errorMapper.js";
+import { domainErrorToHttp, zodValidationError } from "../middleware/errorMapper.js";
 
 export interface TaskHandlers {
   createTask: CreateTaskHandler;
@@ -17,6 +18,7 @@ export interface TaskHandlers {
   uncompleteTask: UncompleteTaskHandler;
   deleteTask: DeleteTaskHandler;
   getInbox: GetInboxHandler;
+  getCompletedInbox: GetCompletedInboxHandler;
   getTodayView: GetTodayViewHandler;
 }
 
@@ -28,10 +30,8 @@ export function registerTaskRoutes(
     const ctx = request.ctx;
     const parsed = createTaskSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.status(400).send({
-        code: "VALIDATION_ERROR",
-        message: parsed.error.issues[0]?.message ?? "Invalid request body",
-      });
+      const err = zodValidationError(parsed.error);
+      return reply.status(err.statusCode).send(err.body);
     }
 
     const result = await handlers.createTask.execute(
@@ -55,10 +55,8 @@ export function registerTaskRoutes(
   app.patch<{ Params: { id: string }; Body: unknown }>("/tasks/:id", async (request, reply) => {
     const parsed = updateTaskSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.status(400).send({
-        code: "VALIDATION_ERROR",
-        message: parsed.error.issues[0]?.message ?? "Invalid request body",
-      });
+      const err = zodValidationError(parsed.error);
+      return reply.status(err.statusCode).send(err.body);
     }
 
     const result = await handlers.updateTask.execute({
@@ -122,6 +120,11 @@ export function registerTaskRoutes(
 
   app.get("/inbox", async (request, reply) => {
     const tasks = await handlers.getInbox.execute(request.ctx);
+    return reply.send(tasks);
+  });
+
+  app.get("/inbox/completed", async (request, reply) => {
+    const tasks = await handlers.getCompletedInbox.execute(request.ctx);
     return reply.send(tasks);
   });
 

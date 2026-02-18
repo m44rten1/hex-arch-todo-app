@@ -1,6 +1,13 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestApp, type TestContext } from "./helpers.js";
 
+function extractTokenCookie(res: { headers: Record<string, string | string[] | undefined> }): string | undefined {
+  const setCookie = res.headers["set-cookie"];
+  const cookieStr = Array.isArray(setCookie) ? setCookie[0] : setCookie;
+  const match = cookieStr?.match(/token=([^;]+)/);
+  return match?.[1];
+}
+
 describe("Auth routes", () => {
   let ctx: TestContext;
 
@@ -9,7 +16,7 @@ describe("Auth routes", () => {
   });
 
   describe("POST /auth/register", () => {
-    it("registers a new user and returns token", async () => {
+    it("registers a new user and sets token cookie", async () => {
       const res = await ctx.app.inject({
         method: "POST",
         url: "/auth/register",
@@ -19,8 +26,8 @@ describe("Auth routes", () => {
 
       expect(res.statusCode).toBe(201);
       const body = res.json();
-      expect(body.token).toBeTruthy();
       expect(body.user.email).toBe("new@example.com");
+      expect(extractTokenCookie(res)).toBeTruthy();
     });
 
     it("rejects duplicate email", async () => {
@@ -74,7 +81,7 @@ describe("Auth routes", () => {
       });
     });
 
-    it("logs in with valid credentials", async () => {
+    it("logs in with valid credentials and sets token cookie", async () => {
       const res = await ctx.app.inject({
         method: "POST",
         url: "/auth/login",
@@ -84,8 +91,8 @@ describe("Auth routes", () => {
 
       expect(res.statusCode).toBe(200);
       const body = res.json();
-      expect(body.token).toBeTruthy();
       expect(body.user.email).toBe("user@example.com");
+      expect(extractTokenCookie(res)).toBeTruthy();
     });
 
     it("rejects wrong password", async () => {
@@ -111,6 +118,21 @@ describe("Auth routes", () => {
     });
   });
 
+  describe("POST /auth/logout", () => {
+    it("clears the token cookie", async () => {
+      const res = await ctx.app.inject({
+        method: "POST",
+        url: "/auth/logout",
+      });
+
+      expect(res.statusCode).toBe(200);
+      const setCookie = res.headers["set-cookie"];
+      const cookieStr = Array.isArray(setCookie) ? setCookie[0] : setCookie;
+      expect(cookieStr).toContain("token=");
+      expect(cookieStr).toContain("Max-Age=0");
+    });
+  });
+
   describe("Protected routes require auth", () => {
     it("returns 401 for /inbox without token", async () => {
       const res = await ctx.app.inject({ method: "GET", url: "/inbox" });
@@ -127,7 +149,7 @@ describe("Auth routes", () => {
       expect(res.statusCode).toBe(401);
     });
 
-    it("allows access with valid token from registration", async () => {
+    it("allows access with valid token from registration via Bearer header", async () => {
       const registerRes = await ctx.app.inject({
         method: "POST",
         url: "/auth/register",
@@ -135,7 +157,7 @@ describe("Auth routes", () => {
         payload: { email: "auth@example.com", password: "password123" },
       });
 
-      const { token } = registerRes.json() as { token: string };
+      const token = extractTokenCookie(registerRes);
 
       const res = await ctx.app.inject({
         method: "GET",
@@ -144,6 +166,46 @@ describe("Auth routes", () => {
       });
 
       expect(res.statusCode).toBe(200);
+    });
+
+    it("allows access with valid token from registration via cookie", async () => {
+      const registerRes = await ctx.app.inject({
+        method: "POST",
+        url: "/auth/register",
+        headers: { "content-type": "application/json" },
+        payload: { email: "auth@example.com", password: "password123" },
+      });
+
+      const token = extractTokenCookie(registerRes);
+
+      const res = await ctx.app.inject({
+        method: "GET",
+        url: "/inbox",
+        cookies: { token: token! },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    it("GET /auth/me returns current user", async () => {
+      const registerRes = await ctx.app.inject({
+        method: "POST",
+        url: "/auth/register",
+        headers: { "content-type": "application/json" },
+        payload: { email: "me@example.com", password: "password123" },
+      });
+
+      const token = extractTokenCookie(registerRes);
+
+      const res = await ctx.app.inject({
+        method: "GET",
+        url: "/auth/me",
+        cookies: { token: token! },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body.user.email).toBe("me@example.com");
     });
 
     it("health endpoint is public", async () => {

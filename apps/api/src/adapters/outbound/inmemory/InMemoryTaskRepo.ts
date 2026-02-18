@@ -23,6 +23,12 @@ export class InMemoryTaskRepo implements TaskRepo {
     );
   }
 
+  async findCompletedInbox(workspaceId: WorkspaceId): Promise<Task[]> {
+    return [...this.tasks.values()]
+      .filter(t => t.workspaceId === workspaceId && t.projectId === null && t.status === "completed")
+      .sort((a, b) => (b.completedAt?.getTime() ?? 0) - (a.completedAt?.getTime() ?? 0));
+  }
+
   async findDueOnOrBefore(workspaceId: WorkspaceId, date: Date): Promise<Task[]> {
     return [...this.tasks.values()].filter(
       t =>

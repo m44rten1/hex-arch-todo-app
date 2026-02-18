@@ -17,16 +17,6 @@ export class ApiRequestError extends Error {
   }
 }
 
-let tokenRef: string | null = null;
-
-export function setToken(token: string | null) {
-  tokenRef = token;
-}
-
-export function getToken(): string | null {
-  return tokenRef;
-}
-
 async function request<T>(
   method: string,
   path: string,
@@ -37,13 +27,11 @@ async function request<T>(
   if (body !== undefined) {
     headers["content-type"] = "application/json";
   }
-  if (tokenRef) {
-    headers["authorization"] = `Bearer ${tokenRef}`;
-  }
 
   const res = await fetch(`${BASE}${path}`, {
     method,
     headers,
+    credentials: "include",
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
@@ -58,9 +46,15 @@ async function request<T>(
   return json as T;
 }
 
+export interface UserDTO {
+  id: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AuthResponse {
-  token: string;
-  user: { id: string; email: string; createdAt: string; updatedAt: string };
+  user: UserDTO;
 }
 
 export interface TaskDTO {
@@ -82,8 +76,26 @@ export const api = {
   login: (email: string, password: string) =>
     request<AuthResponse>("POST", "/auth/login", { email, password }),
 
+  logout: () => request<void>("POST", "/auth/logout"),
+
+  getMe: () => request<{ user: UserDTO | null }>("GET", "/auth/me"),
+
   getInbox: () => request<TaskDTO[]>("GET", "/inbox"),
+
+  getCompletedInbox: () => request<TaskDTO[]>("GET", "/inbox/completed"),
+
+  createTask: (title: string) =>
+    request<TaskDTO>("POST", "/tasks", { title }),
+
+  updateTask: (taskId: string, data: { title?: string }) =>
+    request<TaskDTO>("PATCH", `/tasks/${taskId}`, data),
 
   completeTask: (taskId: string) =>
     request<TaskDTO>("POST", `/tasks/${taskId}/complete`),
+
+  uncompleteTask: (taskId: string) =>
+    request<TaskDTO>("POST", `/tasks/${taskId}/uncomplete`),
+
+  deleteTask: (taskId: string) =>
+    request<void>("DELETE", `/tasks/${taskId}`),
 };

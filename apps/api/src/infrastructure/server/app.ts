@@ -1,7 +1,8 @@
 import Fastify from "fastify";
+import cookie from "@fastify/cookie";
 import type { FastifyInstance } from "fastify";
 import type { TokenService } from "@todo/core/application/ports/outbound/TokenService.js";
-import { registerAuthRoutes } from "../../adapters/inbound/http/routes/authRoutes.js";
+import { registerPublicAuthRoutes, registerAuthRoutes } from "../../adapters/inbound/http/routes/authRoutes.js";
 import { registerTaskRoutes } from "../../adapters/inbound/http/routes/taskRoutes.js";
 import { registerProjectRoutes } from "../../adapters/inbound/http/routes/projectRoutes.js";
 import { authGuard } from "../../adapters/inbound/http/middleware/authGuard.js";
@@ -18,13 +19,15 @@ export function buildApp(
 ): FastifyInstance {
   const app = Fastify({ logger: options.logger ?? true });
 
+  app.register(cookie);
   app.decorateRequest("ctx", undefined as never);
 
-  registerAuthRoutes(app, handlers.auth);
+  registerPublicAuthRoutes(app, handlers.auth);
   app.get("/health", async () => ({ status: "ok" }));
 
   app.register(async (protectedScope) => {
     protectedScope.addHook("onRequest", authGuard(tokenService));
+    registerAuthRoutes(protectedScope, handlers.auth);
     registerTaskRoutes(protectedScope, handlers.tasks);
     registerProjectRoutes(protectedScope, handlers.projects);
   });
