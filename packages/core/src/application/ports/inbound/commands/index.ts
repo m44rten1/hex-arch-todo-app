@@ -11,3 +11,6 @@ export type { UnarchiveProjectCommand } from "./UnarchiveProject.js";
 export type { DeleteProjectCommand } from "./DeleteProject.js";
 export type { RegisterUserCommand } from "./RegisterUser.js";
 export type { LoginUserCommand } from "./LoginUser.js";
+export type { CreateTagCommand } from "./CreateTag.js";
+export type { UpdateTagCommand } from "./UpdateTag.js";
+export type { DeleteTagCommand } from "./DeleteTag.js";
