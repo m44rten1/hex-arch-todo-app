@@ -2,9 +2,11 @@ export type { RecurrenceRule, RecurrenceFrequency, RecurrenceMode } from "./Recu
 export {
   createRecurrenceRule,
   computeNextDueDate,
+  buildNextRecurringTask,
 } from "./RecurrenceRules.js";
 export type {
   CreateRecurrenceRuleParams,
+  BuildNextRecurringTaskParams,
   RecurrenceValidationError,
 } from "./RecurrenceRules.js";
 export type {

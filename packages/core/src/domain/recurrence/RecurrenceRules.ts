@@ -1,6 +1,8 @@
-import type { RecurrenceRuleId, Result, ValidationError } from "../shared/index.js";
+import type { RecurrenceRuleId, TaskId, Result, ValidationError } from "../shared/index.js";
 import { ok, err } from "../shared/index.js";
 import type { RecurrenceRule, RecurrenceFrequency, RecurrenceMode } from "./RecurrenceRule.js";
+import type { Task } from "../task/Task.js";
+import type { CreateTaskParams } from "../task/TaskRules.js";
 
 export type RecurrenceValidationError = ValidationError;
 
@@ -70,6 +72,33 @@ export function computeNextDueDate(
     case "monthly":
       return nextMonthlyOccurrence(rule, base);
   }
+}
+
+export interface BuildNextRecurringTaskParams {
+  readonly completedTask: Task;
+  readonly rule: RecurrenceRule;
+  readonly nextTaskId: TaskId;
+  readonly completedAt: Date;
+}
+
+export function buildNextRecurringTask(
+  params: BuildNextRecurringTaskParams,
+): CreateTaskParams | null {
+  const { completedTask, rule, nextTaskId, completedAt } = params;
+  const nextDue = computeNextDueDate(rule, completedTask.dueAt, completedAt);
+
+  return {
+    id: nextTaskId,
+    title: completedTask.title,
+    now: completedAt,
+    userId: completedTask.ownerUserId,
+    workspaceId: completedTask.workspaceId,
+    projectId: completedTask.projectId ?? undefined,
+    dueAt: nextDue,
+    notes: completedTask.notes ?? undefined,
+    tagIds: completedTask.tagIds,
+    recurrenceRuleId: completedTask.recurrenceRuleId ?? undefined,
+  };
 }
 
 function addDays(date: Date, days: number): Date {
