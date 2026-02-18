@@ -10,6 +10,7 @@ import { registerReminderRoutes } from "../../adapters/inbound/http/routes/remin
 import { registerRecurrenceRoutes } from "../../adapters/inbound/http/routes/recurrenceRoutes.js";
 import { authGuard } from "../../adapters/inbound/http/middleware/authGuard.js";
 import type { AppHandlers } from "../di/container.js";
+import type { ErrorCode } from "../../adapters/inbound/http/middleware/errorMapper.js";
 
 export interface AppOptions {
   readonly logger?: boolean;
@@ -21,6 +22,17 @@ export function buildApp(
   options: AppOptions = {},
 ): FastifyInstance {
   const app = Fastify({ logger: options.logger ?? true });
+
+  app.setErrorHandler((error: Error & { statusCode?: number }, _request, reply) => {
+    app.log.error(error);
+    const statusCode = error.statusCode ?? 500;
+    const code: ErrorCode = statusCode >= 500 ? "INTERNAL_ERROR" : "VALIDATION_ERROR";
+    reply.status(statusCode).send({ code, message: statusCode >= 500 ? "Internal server error" : error.message });
+  });
+
+  app.setNotFoundHandler((_request, reply) => {
+    reply.status(404).send({ code: "NOT_FOUND" satisfies ErrorCode, message: "Route not found" });
+  });
 
   app.register(cookie);
   app.decorateRequest("ctx", undefined as never);
