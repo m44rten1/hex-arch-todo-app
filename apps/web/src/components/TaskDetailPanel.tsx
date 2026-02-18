@@ -4,6 +4,7 @@ import {
   type TaskDTO,
   type ProjectDTO,
   type TagDTO,
+  type ReminderDTO,
 } from "@/lib/api-client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,9 @@ import {
   RotateCcw,
   Ban,
   Trash2,
+  Bell,
+  Plus,
+  CheckCheck,
 } from "lucide-react";
 
 interface TaskDetailPanelProps {
@@ -40,6 +44,12 @@ export function TaskDetailPanel({
   const [projects, setProjects] = useState<ProjectDTO[]>([]);
   const [tags, setTags] = useState<TagDTO[]>([]);
   const [saving, setSaving] = useState(false);
+  const [reminders, setReminders] = useState<ReminderDTO[]>([]);
+  const [newReminderDate, setNewReminderDate] = useState("");
+  const [newReminderTime, setNewReminderTime] = useState("09:00");
+  const [editingReminderId, setEditingReminderId] = useState<string | null>(null);
+  const [editReminderDate, setEditReminderDate] = useState("");
+  const [editReminderTime, setEditReminderTime] = useState("");
 
   useEffect(() => {
     setTitle(task.title);
@@ -53,6 +63,10 @@ export function TaskDetailPanel({
     void api.getProjects().then((p) => setProjects(p.filter((proj) => !proj.archived))).catch(() => {});
     void api.getTags().then(setTags).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    void api.getReminders(task.id).then(setReminders).catch(() => {});
+  }, [task.id]);
 
   const saveField = useCallback(async (data: Parameters<typeof api.updateTask>[1]) => {
     setSaving(true);
@@ -100,6 +114,59 @@ export function TaskDetailPanel({
       return next;
     });
   }, [saveField]);
+
+  const handleAddReminder = useCallback(async () => {
+    if (!newReminderDate) return;
+    const remindAt = new Date(`${newReminderDate}T${newReminderTime || "09:00"}`).toISOString();
+    try {
+      const created = await api.createReminder(task.id, remindAt);
+      setReminders((prev) => [...prev, created]);
+      setNewReminderDate("");
+      setNewReminderTime("09:00");
+    } catch {
+      // ignore
+    }
+  }, [task.id, newReminderDate, newReminderTime]);
+
+  const handleUpdateReminder = useCallback(async (reminderId: string) => {
+    if (!editReminderDate) {
+      setEditingReminderId(null);
+      return;
+    }
+    const remindAt = new Date(`${editReminderDate}T${editReminderTime || "09:00"}`).toISOString();
+    try {
+      const updated = await api.updateReminder(reminderId, remindAt);
+      setReminders((prev) => prev.map((r) => (r.id === reminderId ? updated : r)));
+    } catch {
+      // ignore
+    }
+    setEditingReminderId(null);
+  }, [editReminderDate, editReminderTime]);
+
+  const handleDismissReminder = useCallback(async (reminderId: string) => {
+    try {
+      const updated = await api.dismissReminder(reminderId);
+      setReminders((prev) => prev.map((r) => (r.id === reminderId ? updated : r)));
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleDeleteReminder = useCallback(async (reminderId: string) => {
+    try {
+      await api.deleteReminder(reminderId);
+      setReminders((prev) => prev.filter((r) => r.id !== reminderId));
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const startEditReminder = useCallback((reminder: ReminderDTO) => {
+    setEditingReminderId(reminder.id);
+    const dt = new Date(reminder.remindAt);
+    setEditReminderDate(dt.toISOString().slice(0, 10));
+    setEditReminderTime(dt.toTimeString().slice(0, 5));
+  }, []);
 
   const handleComplete = useCallback(async () => {
     try {
@@ -250,6 +317,116 @@ export function TaskDetailPanel({
             rows={4}
             className="w-full rounded-md border bg-transparent px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
           />
+        </div>
+
+        {/* Reminders */}
+        <div>
+          <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1.5">
+            <Bell className="h-4 w-4" />
+            Reminders
+          </label>
+
+          {reminders.length > 0 && (
+            <div className="space-y-2 mb-2">
+              {reminders.map((reminder) => {
+                const isPending = reminder.status === "pending";
+                const dt = new Date(reminder.remindAt);
+
+                if (editingReminderId === reminder.id) {
+                  return (
+                    <div key={reminder.id} className="flex gap-1 items-center">
+                      <input
+                        type="date"
+                        value={editReminderDate}
+                        onChange={(e) => setEditReminderDate(e.target.value)}
+                        className="flex-1 rounded border bg-transparent px-2 py-1 text-xs"
+                      />
+                      <input
+                        type="time"
+                        value={editReminderTime}
+                        onChange={(e) => setEditReminderTime(e.target.value)}
+                        className="w-20 rounded border bg-transparent px-2 py-1 text-xs"
+                      />
+                      <button
+                        onClick={() => void handleUpdateReminder(reminder.id)}
+                        className="text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setEditingReminderId(null)}
+                        className="text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={reminder.id}
+                    className="group/reminder flex items-center justify-between rounded border px-2 py-1.5 text-xs"
+                  >
+                    <span className={isPending ? "" : "text-muted-foreground line-through"}>
+                      {dt.toLocaleDateString(undefined, { month: "short", day: "numeric" })}{" "}
+                      {dt.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                    <div className="flex gap-1 opacity-0 group-hover/reminder:opacity-100 transition-opacity">
+                      {isPending && (
+                        <>
+                          <button
+                            onClick={() => startEditReminder(reminder)}
+                            className="text-muted-foreground hover:text-foreground cursor-pointer"
+                            aria-label="Edit reminder"
+                          >
+                            <Calendar className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => void handleDismissReminder(reminder.id)}
+                            className="text-muted-foreground hover:text-foreground cursor-pointer"
+                            aria-label="Dismiss reminder"
+                          >
+                            <CheckCheck className="h-3.5 w-3.5" />
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => void handleDeleteReminder(reminder.id)}
+                        className="text-muted-foreground hover:text-destructive cursor-pointer"
+                        aria-label="Delete reminder"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="flex gap-1 items-center">
+            <input
+              type="date"
+              value={newReminderDate}
+              onChange={(e) => setNewReminderDate(e.target.value)}
+              className="flex-1 rounded border bg-transparent px-2 py-1 text-xs"
+            />
+            <input
+              type="time"
+              value={newReminderTime}
+              onChange={(e) => setNewReminderTime(e.target.value)}
+              className="w-20 rounded border bg-transparent px-2 py-1 text-xs"
+            />
+            <button
+              onClick={() => void handleAddReminder()}
+              disabled={!newReminderDate}
+              className="text-muted-foreground hover:text-foreground disabled:opacity-40 cursor-pointer"
+              aria-label="Add reminder"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 
