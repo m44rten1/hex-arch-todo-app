@@ -3,6 +3,7 @@ import { InMemoryProjectRepo } from "../adapters/outbound/inmemory/InMemoryProje
 import { InMemoryTagRepo } from "../adapters/outbound/inmemory/InMemoryTagRepo.js";
 import { InMemoryUserRepo } from "../adapters/outbound/inmemory/InMemoryUserRepo.js";
 import { InMemoryWorkspaceRepo } from "../adapters/outbound/inmemory/InMemoryWorkspaceRepo.js";
+import { InMemoryUserRegistrationStore } from "../adapters/outbound/inmemory/InMemoryUserRegistrationStore.js";
 import { InMemoryEventBus } from "../adapters/outbound/inmemory/InMemoryEventBus.js";
 import { UuidIdGenerator } from "../adapters/outbound/UuidIdGenerator.js";
 import { SystemClock } from "../adapters/outbound/SystemClock.js";
@@ -17,12 +18,16 @@ async function main(): Promise<void> {
 
   const tokenService = new JoseTokenService(jwtSecret);
 
+  const userRepo = new InMemoryUserRepo();
+  const workspaceRepo = new InMemoryWorkspaceRepo();
+
   const handlers = wireHandlers({
     taskRepo: new InMemoryTaskRepo(),
     projectRepo: new InMemoryProjectRepo(),
     tagRepo: new InMemoryTagRepo(),
-    userRepo: new InMemoryUserRepo(),
-    workspaceRepo: new InMemoryWorkspaceRepo(),
+    userRepo,
+    workspaceRepo,
+    registrationStore: new InMemoryUserRegistrationStore(userRepo, workspaceRepo),
     idGenerator: new UuidIdGenerator(),
     clock: new SystemClock(),
     eventBus: new InMemoryEventBus(),

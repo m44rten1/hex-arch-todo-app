@@ -3,6 +3,7 @@ import { RegisterUserHandler } from "@todo/core/application/usecases/auth/Regist
 import { LoginUserHandler } from "@todo/core/application/usecases/auth/LoginUserHandler.js";
 import { InMemoryUserRepo } from "../../src/adapters/outbound/inmemory/InMemoryUserRepo.js";
 import { InMemoryWorkspaceRepo } from "../../src/adapters/outbound/inmemory/InMemoryWorkspaceRepo.js";
+import { InMemoryUserRegistrationStore } from "../../src/adapters/outbound/inmemory/InMemoryUserRegistrationStore.js";
 import { InMemoryEventBus } from "../../src/adapters/outbound/inmemory/InMemoryEventBus.js";
 import { StubIdGenerator } from "../../src/adapters/outbound/inmemory/StubIdGenerator.js";
 import { StubClock } from "../../src/adapters/outbound/inmemory/StubClock.js";
@@ -25,8 +26,7 @@ describe("LoginUserHandler", () => {
     tokenService = new StubTokenService();
 
     const registerHandler = new RegisterUserHandler(
-      userRepo,
-      workspaceRepo,
+      new InMemoryUserRegistrationStore(userRepo, workspaceRepo),
       hasher,
       tokenService,
       new StubIdGenerator(),

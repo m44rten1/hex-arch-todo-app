@@ -6,6 +6,7 @@ import { InMemoryProjectRepo } from "../../src/adapters/outbound/inmemory/InMemo
 import { InMemoryTagRepo } from "../../src/adapters/outbound/inmemory/InMemoryTagRepo.js";
 import { InMemoryUserRepo } from "../../src/adapters/outbound/inmemory/InMemoryUserRepo.js";
 import { InMemoryWorkspaceRepo } from "../../src/adapters/outbound/inmemory/InMemoryWorkspaceRepo.js";
+import { InMemoryUserRegistrationStore } from "../../src/adapters/outbound/inmemory/InMemoryUserRegistrationStore.js";
 import { InMemoryEventBus } from "../../src/adapters/outbound/inmemory/InMemoryEventBus.js";
 import { StubIdGenerator } from "../../src/adapters/outbound/inmemory/StubIdGenerator.js";
 import { StubClock } from "../../src/adapters/outbound/inmemory/StubClock.js";
@@ -42,6 +43,7 @@ export function createTestApp(now = new Date("2025-06-15T10:00:00Z")): TestConte
     tagRepo,
     userRepo,
     workspaceRepo,
+    registrationStore: new InMemoryUserRegistrationStore(userRepo, workspaceRepo),
     idGenerator: idGen,
     clock,
     eventBus,

@@ -27,6 +27,7 @@ import type { TaskRepo } from "@todo/core/application/ports/outbound/TaskRepo.js
 import type { ProjectRepo } from "@todo/core/application/ports/outbound/ProjectRepo.js";
 import type { UserRepo } from "@todo/core/application/ports/outbound/UserRepo.js";
 import type { WorkspaceRepo } from "@todo/core/application/ports/outbound/WorkspaceRepo.js";
+import type { UserRegistrationStore } from "@todo/core/application/ports/outbound/UserRegistrationStore.js";
 import type { IdGenerator } from "@todo/core/application/ports/outbound/IdGenerator.js";
 import type { Clock } from "@todo/core/domain/shared/Clock.js";
 import type { EventBus } from "@todo/core/application/ports/outbound/EventBus.js";
@@ -44,6 +45,7 @@ export interface Dependencies {
   readonly tagRepo: TagRepo;
   readonly userRepo: UserRepo;
   readonly workspaceRepo: WorkspaceRepo;
+  readonly registrationStore: UserRegistrationStore;
   readonly idGenerator: IdGenerator;
   readonly clock: Clock;
   readonly eventBus: EventBus;
@@ -60,7 +62,7 @@ export interface AppHandlers {
 
 export function wireHandlers(deps: Dependencies): AppHandlers {
   const {
-    taskRepo, projectRepo, tagRepo, userRepo, workspaceRepo,
+    taskRepo, projectRepo, tagRepo, userRepo, workspaceRepo, registrationStore,
     idGenerator, clock, eventBus, passwordHasher, tokenService,
   } = deps;
 
@@ -95,7 +97,7 @@ export function wireHandlers(deps: Dependencies): AppHandlers {
     },
     auth: {
       register: new RegisterUserHandler(
-        userRepo, workspaceRepo, passwordHasher, tokenService,
+        registrationStore, passwordHasher, tokenService,
         idGenerator, clock, eventBus,
       ),
       login: new LoginUserHandler(userRepo, workspaceRepo, passwordHasher, tokenService),

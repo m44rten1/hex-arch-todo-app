@@ -3,6 +3,7 @@ import { RegisterUserHandler } from "@todo/core/application/usecases/auth/Regist
 import { userId, workspaceId } from "@todo/core/domain/shared/index.js";
 import { InMemoryUserRepo } from "../../src/adapters/outbound/inmemory/InMemoryUserRepo.js";
 import { InMemoryWorkspaceRepo } from "../../src/adapters/outbound/inmemory/InMemoryWorkspaceRepo.js";
+import { InMemoryUserRegistrationStore } from "../../src/adapters/outbound/inmemory/InMemoryUserRegistrationStore.js";
 import { InMemoryEventBus } from "../../src/adapters/outbound/inmemory/InMemoryEventBus.js";
 import { StubIdGenerator } from "../../src/adapters/outbound/inmemory/StubIdGenerator.js";
 import { StubClock } from "../../src/adapters/outbound/inmemory/StubClock.js";
@@ -14,6 +15,7 @@ const NOW = new Date("2025-06-15T10:00:00Z");
 describe("RegisterUserHandler", () => {
   let userRepo: InMemoryUserRepo;
   let workspaceRepo: InMemoryWorkspaceRepo;
+  let registrationStore: InMemoryUserRegistrationStore;
   let eventBus: InMemoryEventBus;
   let idGen: StubIdGenerator;
   let clock: StubClock;
@@ -22,12 +24,12 @@ describe("RegisterUserHandler", () => {
   beforeEach(() => {
     userRepo = new InMemoryUserRepo();
     workspaceRepo = new InMemoryWorkspaceRepo();
+    registrationStore = new InMemoryUserRegistrationStore(userRepo, workspaceRepo);
     eventBus = new InMemoryEventBus();
     idGen = new StubIdGenerator();
     clock = new StubClock(NOW);
     handler = new RegisterUserHandler(
-      userRepo,
-      workspaceRepo,
+      registrationStore,
       new StubPasswordHasher(),
       new StubTokenService(),
       idGen,
