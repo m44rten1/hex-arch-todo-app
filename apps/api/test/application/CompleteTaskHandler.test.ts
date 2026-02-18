@@ -13,6 +13,10 @@ const CTX: RequestContext = {
   userId: userId("user-1"),
   workspaceId: workspaceId("ws-1"),
 };
+const OTHER_CTX: RequestContext = {
+  userId: userId("user-2"),
+  workspaceId: workspaceId("ws-other"),
+};
 
 describe("CompleteTaskHandler", () => {
   let taskRepo: InMemoryTaskRepo;
@@ -39,7 +43,7 @@ describe("CompleteTaskHandler", () => {
     const completionTime = new Date("2025-06-15T12:00:00Z");
     clock.set(completionTime);
 
-    const result = await completeHandler.execute({ taskId: id });
+    const result = await completeHandler.execute({ taskId: id }, CTX);
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -48,7 +52,7 @@ describe("CompleteTaskHandler", () => {
   });
 
   it("returns not found for unknown task", async () => {
-    const result = await completeHandler.execute({ taskId: taskId("nonexistent") });
+    const result = await completeHandler.execute({ taskId: taskId("nonexistent") }, CTX);
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.type).toBe("NotFoundError");
@@ -58,11 +62,22 @@ describe("CompleteTaskHandler", () => {
     const id = taskId("task-1");
     idGen.setNextTaskId(id);
     await createHandler.execute({ title: "Task" }, CTX);
-    await completeHandler.execute({ taskId: id });
+    await completeHandler.execute({ taskId: id }, CTX);
 
-    const result = await completeHandler.execute({ taskId: id });
+    const result = await completeHandler.execute({ taskId: id }, CTX);
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.type).toBe("InvalidStateTransitionError");
+  });
+
+  it("returns not found for task in another workspace", async () => {
+    const id = taskId("task-1");
+    idGen.setNextTaskId(id);
+    await createHandler.execute({ title: "Private" }, CTX);
+
+    const result = await completeHandler.execute({ taskId: id }, OTHER_CTX);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.type).toBe("NotFoundError");
   });
 });

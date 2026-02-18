@@ -1,6 +1,7 @@
 import type { Result, NotFoundError } from "../../../domain/shared/index.js";
 import { ok, err } from "../../../domain/shared/index.js";
 import type { DeleteTaskCommand } from "../../ports/inbound/commands/DeleteTask.js";
+import type { RequestContext } from "../../RequestContext.js";
 import type { TaskRepo } from "../../ports/outbound/TaskRepo.js";
 import type { Clock } from "../../../domain/shared/Clock.js";
 import type { EventBus } from "../../ports/outbound/EventBus.js";
@@ -13,9 +14,9 @@ export class DeleteTaskHandler {
     private readonly eventBus: EventBus,
   ) {}
 
-  async execute(cmd: DeleteTaskCommand): Promise<Result<void, NotFoundError>> {
+  async execute(cmd: DeleteTaskCommand, ctx: RequestContext): Promise<Result<void, NotFoundError>> {
     const existing = await this.taskRepo.findById(cmd.taskId);
-    if (existing === null) {
+    if (existing === null || existing.workspaceId !== ctx.workspaceId) {
       return err({ type: "NotFoundError", entity: "Task", id: cmd.taskId });
     }
 

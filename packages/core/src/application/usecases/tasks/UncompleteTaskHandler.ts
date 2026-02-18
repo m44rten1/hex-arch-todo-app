@@ -5,6 +5,7 @@ import type { TaskStateError } from "../../../domain/task/TaskRules.js";
 import type { TaskDTO } from "../../dto/TaskDTO.js";
 import { toTaskDTO } from "../../dto/TaskDTO.js";
 import type { UncompleteTaskCommand } from "../../ports/inbound/commands/UncompleteTask.js";
+import type { RequestContext } from "../../RequestContext.js";
 import type { TaskRepo } from "../../ports/outbound/TaskRepo.js";
 import type { Clock } from "../../../domain/shared/Clock.js";
 import type { EventBus } from "../../ports/outbound/EventBus.js";
@@ -19,9 +20,9 @@ export class UncompleteTaskHandler {
     private readonly eventBus: EventBus,
   ) {}
 
-  async execute(cmd: UncompleteTaskCommand): Promise<Result<TaskDTO, UncompleteTaskError>> {
+  async execute(cmd: UncompleteTaskCommand, ctx: RequestContext): Promise<Result<TaskDTO, UncompleteTaskError>> {
     const existing = await this.taskRepo.findById(cmd.taskId);
-    if (existing === null) {
+    if (existing === null || existing.workspaceId !== ctx.workspaceId) {
       return err({ type: "NotFoundError", entity: "Task", id: cmd.taskId });
     }
 

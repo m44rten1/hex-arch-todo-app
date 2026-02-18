@@ -7,6 +7,7 @@ import { toProjectDTO } from "../../dto/ProjectDTO.js";
 import type { TaskDTO } from "../../dto/TaskDTO.js";
 import { toTaskDTO } from "../../dto/TaskDTO.js";
 import type { GetProjectQuery } from "../../ports/inbound/queries/GetProject.js";
+import type { RequestContext } from "../../RequestContext.js";
 
 export interface ProjectDetailDTO {
   readonly project: ProjectDTO;
@@ -19,9 +20,9 @@ export class GetProjectHandler {
     private readonly taskRepo: TaskRepo,
   ) {}
 
-  async execute(query: GetProjectQuery): Promise<Result<ProjectDetailDTO, NotFoundError>> {
+  async execute(query: GetProjectQuery, ctx: RequestContext): Promise<Result<ProjectDetailDTO, NotFoundError>> {
     const project = await this.projectRepo.findById(query.projectId);
-    if (project === null) {
+    if (project === null || project.workspaceId !== ctx.workspaceId) {
       return err({ type: "NotFoundError", entity: "Project", id: query.projectId });
     }
 

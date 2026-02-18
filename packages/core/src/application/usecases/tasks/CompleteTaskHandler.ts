@@ -5,6 +5,7 @@ import type { TaskStateError } from "../../../domain/task/TaskRules.js";
 import type { TaskDTO } from "../../dto/TaskDTO.js";
 import { toTaskDTO } from "../../dto/TaskDTO.js";
 import type { CompleteTaskCommand } from "../../ports/inbound/commands/CompleteTask.js";
+import type { RequestContext } from "../../RequestContext.js";
 import type { TaskRepo } from "../../ports/outbound/TaskRepo.js";
 import type { Clock } from "../../../domain/shared/Clock.js";
 import type { EventBus } from "../../ports/outbound/EventBus.js";
@@ -19,9 +20,9 @@ export class CompleteTaskHandler {
     private readonly eventBus: EventBus,
   ) {}
 
-  async execute(cmd: CompleteTaskCommand): Promise<Result<TaskDTO, CompleteTaskError>> {
+  async execute(cmd: CompleteTaskCommand, ctx: RequestContext): Promise<Result<TaskDTO, CompleteTaskError>> {
     const existing = await this.taskRepo.findById(cmd.taskId);
-    if (existing === null) {
+    if (existing === null || existing.workspaceId !== ctx.workspaceId) {
       return err({ type: "NotFoundError", entity: "Task", id: cmd.taskId });
     }
 

@@ -48,7 +48,7 @@ export function registerProjectRoutes(
     const result = await handlers.getProject.execute({
       type: "GetProject",
       projectId: projectId(request.params.id),
-    });
+    }, request.ctx);
 
     if (!result.ok) {
       const httpErr = domainErrorToHttp(result.error);

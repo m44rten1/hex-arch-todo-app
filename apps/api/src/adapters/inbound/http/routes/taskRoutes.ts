@@ -71,7 +71,7 @@ export function registerTaskRoutes(
       dueAt: parsed.data.dueAt !== undefined
         ? (parsed.data.dueAt !== null ? new Date(parsed.data.dueAt) : null)
         : undefined,
-    });
+    }, request.ctx);
 
     if (!result.ok) {
       const httpErr = domainErrorToHttp(result.error);
@@ -84,7 +84,7 @@ export function registerTaskRoutes(
   app.post<{ Params: { id: string } }>("/tasks/:id/complete", async (request, reply) => {
     const result = await handlers.completeTask.execute({
       taskId: taskId(request.params.id),
-    });
+    }, request.ctx);
 
     if (!result.ok) {
       const httpErr = domainErrorToHttp(result.error);
@@ -97,7 +97,7 @@ export function registerTaskRoutes(
   app.post<{ Params: { id: string } }>("/tasks/:id/uncomplete", async (request, reply) => {
     const result = await handlers.uncompleteTask.execute({
       taskId: taskId(request.params.id),
-    });
+    }, request.ctx);
 
     if (!result.ok) {
       const httpErr = domainErrorToHttp(result.error);
@@ -110,7 +110,7 @@ export function registerTaskRoutes(
   app.delete<{ Params: { id: string } }>("/tasks/:id", async (request, reply) => {
     const result = await handlers.deleteTask.execute({
       taskId: taskId(request.params.id),
-    });
+    }, request.ctx);
 
     if (!result.ok) {
       const httpErr = domainErrorToHttp(result.error);
