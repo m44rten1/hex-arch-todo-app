@@ -3,7 +3,7 @@ import { err } from "../../../domain/shared/index.js";
 import type { Task } from "../../../domain/task/Task.js";
 import { completeTask, createTask } from "../../../domain/task/TaskRules.js";
 import type { TaskStateError } from "../../../domain/task/TaskRules.js";
-import { computeNextDueDate } from "../../../domain/recurrence/RecurrenceRules.js";
+import { buildNextRecurringTask } from "../../../domain/recurrence/RecurrenceRules.js";
 import type { TaskDTO } from "../../dto/TaskDTO.js";
 import { toTaskDTO } from "../../dto/TaskDTO.js";
 import type { CompleteTaskCommand } from "../../ports/inbound/commands/CompleteTask.js";
@@ -40,11 +40,17 @@ export class CompleteTaskHandler {
   }
 
   async execute(cmd: CompleteTaskCommand, ctx: RequestContext): Promise<Result<TaskDTO, CompleteTaskError>> {
+    // --- GATHER ---
     const existing = await this.taskRepo.findById(cmd.taskId);
     if (existing === null || existing.workspaceId !== ctx.workspaceId) {
       return err({ type: "NotFoundError", entity: "Task", id: cmd.taskId });
     }
 
+    const rule = existing.recurrenceRuleId !== null
+      ? await this.recurrenceRuleRepo.findById(existing.recurrenceRuleId)
+      : null;
+
+    // --- DECIDE ---
     const now = this.clock.now();
     const result = completeTask(existing, now);
     if (!result.ok) return result;
@@ -60,14 +66,33 @@ export class CompleteTaskHandler {
     };
     events.push(completedEvent);
 
-    if (existing.recurrenceRuleId !== null) {
-      const next = await this.buildNextRecurringTask(existing, now, ctx);
-      if (next !== null) {
-        tasksToSave.push(next.task);
-        events.push(next.event);
+    if (rule !== null) {
+      const nextParams = buildNextRecurringTask({
+        completedTask: existing,
+        rule,
+        nextTaskId: this.idGenerator.taskId(),
+        completedAt: now,
+      });
+
+      if (nextParams !== null) {
+        const nextResult = createTask(nextParams);
+        if (nextResult.ok) {
+          tasksToSave.push(nextResult.value);
+          const nextEvent: TaskCreated = {
+            type: "TaskCreated",
+            taskId: nextResult.value.id,
+            title: nextResult.value.title,
+            workspaceId: nextResult.value.workspaceId,
+            ownerUserId: nextResult.value.ownerUserId,
+            projectId: nextResult.value.projectId,
+            occurredAt: now,
+          };
+          events.push(nextEvent);
+        }
       }
     }
 
+    // --- ACT ---
     await this.taskRepo.saveAll(tasksToSave);
 
     for (const event of events) {
@@ -75,46 +100,5 @@ export class CompleteTaskHandler {
     }
 
     return { ok: true, value: toTaskDTO(result.value) };
-  }
-
-  private async buildNextRecurringTask(
-    completedTask: Task,
-    completedAt: Date,
-    ctx: RequestContext,
-  ): Promise<{ task: Task; event: TaskCreated } | null> {
-    if (completedTask.recurrenceRuleId === null) return null;
-
-    const rule = await this.recurrenceRuleRepo.findById(completedTask.recurrenceRuleId);
-    if (rule === null) return null;
-
-    const nextDue = computeNextDueDate(rule, completedTask.dueAt, completedAt);
-    const nextId = this.idGenerator.taskId();
-
-    const nextResult = createTask({
-      id: nextId,
-      title: completedTask.title,
-      now: completedAt,
-      userId: completedTask.ownerUserId,
-      workspaceId: completedTask.workspaceId,
-      projectId: completedTask.projectId ?? undefined,
-      dueAt: nextDue,
-      notes: completedTask.notes ?? undefined,
-      tagIds: completedTask.tagIds,
-      recurrenceRuleId: completedTask.recurrenceRuleId,
-    });
-
-    if (!nextResult.ok) return null;
-
-    const event: TaskCreated = {
-      type: "TaskCreated",
-      taskId: nextId,
-      title: nextResult.value.title,
-      workspaceId: ctx.workspaceId,
-      ownerUserId: ctx.userId,
-      projectId: nextResult.value.projectId,
-      occurredAt: completedAt,
-    };
-
-    return { task: nextResult.value, event };
   }
 }
