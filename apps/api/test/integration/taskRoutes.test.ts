@@ -153,7 +153,7 @@ describe("Task routes", () => {
   });
 
   describe("DELETE /tasks/:id", () => {
-    it("deletes a task and returns 204", async () => {
+    it("soft-deletes a task and returns 204", async () => {
       ctx.idGen.setNextTaskId(taskId("task-1"));
       await ctx.app.inject({ method: "POST", url: "/tasks", headers: authHeaders(), payload: { title: "Task" } });
 
@@ -164,6 +164,34 @@ describe("Task routes", () => {
       });
 
       expect(res.statusCode).toBe(204);
+    });
+
+    it("soft-deleted task no longer appears in inbox", async () => {
+      ctx.idGen.setNextTaskId(taskId("task-1"));
+      await ctx.app.inject({ method: "POST", url: "/tasks", headers: authHeaders(), payload: { title: "Task" } });
+      await ctx.app.inject({ method: "DELETE", url: "/tasks/task-1", headers: { authorization: `Bearer ${token}` } });
+
+      const res = await ctx.app.inject({
+        method: "GET",
+        url: "/inbox",
+        headers: { authorization: `Bearer ${token}` },
+      });
+
+      expect(res.json()).toHaveLength(0);
+    });
+
+    it("returns 404 when deleting an already deleted task", async () => {
+      ctx.idGen.setNextTaskId(taskId("task-1"));
+      await ctx.app.inject({ method: "POST", url: "/tasks", headers: authHeaders(), payload: { title: "Task" } });
+      await ctx.app.inject({ method: "DELETE", url: "/tasks/task-1", headers: { authorization: `Bearer ${token}` } });
+
+      const res = await ctx.app.inject({
+        method: "DELETE",
+        url: "/tasks/task-1",
+        headers: { authorization: `Bearer ${token}` },
+      });
+
+      expect(res.statusCode).toBe(404);
     });
   });
 
