@@ -15,6 +15,12 @@ export class InMemoryTaskRepo implements TaskRepo {
     this.tasks.set(task.id, task);
   }
 
+  async saveAll(tasks: readonly Task[]): Promise<void> {
+    for (const task of tasks) {
+      this.tasks.set(task.id, task);
+    }
+  }
+
   async findInbox(workspaceId: WorkspaceId): Promise<Task[]> {
     return [...this.tasks.values()].filter(
       t => t.workspaceId === workspaceId && t.projectId === null && t.status === "active" && t.deletedAt === null,

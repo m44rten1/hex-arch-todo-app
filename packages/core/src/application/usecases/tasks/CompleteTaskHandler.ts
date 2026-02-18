@@ -14,6 +14,7 @@ import type { IdGenerator } from "../../ports/outbound/IdGenerator.js";
 import type { Clock } from "../../../domain/shared/Clock.js";
 import type { EventBus } from "../../ports/outbound/EventBus.js";
 import type { TaskCompleted, TaskCreated } from "../../../domain/task/TaskEvents.js";
+import type { DomainEvent } from "../../../domain/shared/DomainEvent.js";
 
 export type CompleteTaskError = TaskStateError | NotFoundError;
 
@@ -48,7 +49,8 @@ export class CompleteTaskHandler {
     const result = completeTask(existing, now);
     if (!result.ok) return result;
 
-    await this.taskRepo.save(result.value);
+    const tasksToSave: Task[] = [result.value];
+    const events: DomainEvent[] = [];
 
     const completedEvent: TaskCompleted = {
       type: "TaskCompleted",
@@ -56,24 +58,34 @@ export class CompleteTaskHandler {
       completedAt: now,
       occurredAt: now,
     };
-    await this.eventBus.publish(completedEvent);
+    events.push(completedEvent);
 
     if (existing.recurrenceRuleId !== null) {
-      await this.advanceRecurrence(existing, now, ctx);
+      const next = await this.buildNextRecurringTask(existing, now, ctx);
+      if (next !== null) {
+        tasksToSave.push(next.task);
+        events.push(next.event);
+      }
+    }
+
+    await this.taskRepo.saveAll(tasksToSave);
+
+    for (const event of events) {
+      await this.eventBus.publish(event);
     }
 
     return { ok: true, value: toTaskDTO(result.value) };
   }
 
-  private async advanceRecurrence(
+  private async buildNextRecurringTask(
     completedTask: Task,
     completedAt: Date,
     ctx: RequestContext,
-  ): Promise<void> {
-    if (completedTask.recurrenceRuleId === null) return;
+  ): Promise<{ task: Task; event: TaskCreated } | null> {
+    if (completedTask.recurrenceRuleId === null) return null;
 
     const rule = await this.recurrenceRuleRepo.findById(completedTask.recurrenceRuleId);
-    if (rule === null) return;
+    if (rule === null) return null;
 
     const nextDue = computeNextDueDate(rule, completedTask.dueAt, completedAt);
     const nextId = this.idGenerator.taskId();
@@ -91,11 +103,9 @@ export class CompleteTaskHandler {
       recurrenceRuleId: completedTask.recurrenceRuleId,
     });
 
-    if (!nextResult.ok) return;
+    if (!nextResult.ok) return null;
 
-    await this.taskRepo.save(nextResult.value);
-
-    const createdEvent: TaskCreated = {
+    const event: TaskCreated = {
       type: "TaskCreated",
       taskId: nextId,
       title: nextResult.value.title,
@@ -104,6 +114,7 @@ export class CompleteTaskHandler {
       projectId: nextResult.value.projectId,
       occurredAt: completedAt,
     };
-    await this.eventBus.publish(createdEvent);
+
+    return { task: nextResult.value, event };
   }
 }

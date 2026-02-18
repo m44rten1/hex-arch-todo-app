@@ -4,6 +4,7 @@ import type { TaskId, ProjectId, WorkspaceId, TagId } from "../../../domain/shar
 export interface TaskRepo {
   findById(id: TaskId): Promise<Task | null>;
   save(task: Task): Promise<void>;
+  saveAll(tasks: readonly Task[]): Promise<void>;
   findInbox(workspaceId: WorkspaceId): Promise<Task[]>;
   findCompletedInbox(workspaceId: WorkspaceId): Promise<Task[]>;
   findDueOnOrBefore(workspaceId: WorkspaceId, date: Date): Promise<Task[]>;

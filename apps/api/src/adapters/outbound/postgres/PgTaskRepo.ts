@@ -3,7 +3,8 @@ import type { TaskId, ProjectId, WorkspaceId, TagId } from "@todo/core/domain/sh
 import { tagId } from "@todo/core/domain/shared/index.js";
 import type { TaskRepo } from "@todo/core/application/ports/outbound/TaskRepo.js";
 import type { Db } from "./db.js";
-import type { TasksTable } from "./schema.js";
+import type { Kysely } from "kysely";
+import type { Database, TasksTable } from "./schema.js";
 import { rowToTask } from "./taskMapper.js";
 
 export class PgTaskRepo implements TaskRepo {
@@ -26,7 +27,20 @@ export class PgTaskRepo implements TaskRepo {
   }
 
   async save(task: Task): Promise<void> {
-    await this.db
+    await this.saveOne(this.db, task);
+  }
+
+  async saveAll(tasks: readonly Task[]): Promise<void> {
+    if (tasks.length === 0) return;
+    await this.db.transaction().execute(async (trx) => {
+      for (const task of tasks) {
+        await this.saveOne(trx, task);
+      }
+    });
+  }
+
+  private async saveOne(db: Kysely<Database>, task: Task): Promise<void> {
+    await db
       .insertInto("tasks")
       .values({
         id: task.id,
@@ -57,7 +71,7 @@ export class PgTaskRepo implements TaskRepo {
         }),
       )
       .execute();
-    await this.syncTagIds(task.id, task.tagIds);
+    await this.syncTagIds(db, task.id, task.tagIds);
   }
 
   async findInbox(wsId: WorkspaceId): Promise<Task[]> {
@@ -163,10 +177,10 @@ export class PgTaskRepo implements TaskRepo {
     return map;
   }
 
-  private async syncTagIds(tId: TaskId, tagIds: readonly TagId[]): Promise<void> {
-    await this.db.deleteFrom("task_tags").where("task_id", "=", tId).execute();
+  private async syncTagIds(db: Kysely<Database>, tId: TaskId, tagIds: readonly TagId[]): Promise<void> {
+    await db.deleteFrom("task_tags").where("task_id", "=", tId).execute();
     if (tagIds.length > 0) {
-      await this.db
+      await db
         .insertInto("task_tags")
         .values(tagIds.map(tgId => ({ task_id: tId, tag_id: tgId })))
         .execute();
