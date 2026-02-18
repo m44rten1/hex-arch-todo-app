@@ -5,6 +5,7 @@ import type { UpdateTaskHandler } from "@todo/core/application/usecases/tasks/Up
 import type { CompleteTaskHandler } from "@todo/core/application/usecases/tasks/CompleteTaskHandler.js";
 import type { UncompleteTaskHandler } from "@todo/core/application/usecases/tasks/UncompleteTaskHandler.js";
 import type { DeleteTaskHandler } from "@todo/core/application/usecases/tasks/DeleteTaskHandler.js";
+import type { CancelTaskHandler } from "@todo/core/application/usecases/tasks/CancelTaskHandler.js";
 import type { GetInboxHandler } from "@todo/core/application/usecases/queries/GetInboxHandler.js";
 import type { GetCompletedInboxHandler } from "@todo/core/application/usecases/queries/GetCompletedInboxHandler.js";
 import type { GetTodayViewHandler } from "@todo/core/application/usecases/queries/GetTodayViewHandler.js";
@@ -17,6 +18,7 @@ export interface TaskHandlers {
   completeTask: CompleteTaskHandler;
   uncompleteTask: UncompleteTaskHandler;
   deleteTask: DeleteTaskHandler;
+  cancelTask: CancelTaskHandler;
   getInbox: GetInboxHandler;
   getCompletedInbox: GetCompletedInboxHandler;
   getTodayView: GetTodayViewHandler;
@@ -94,6 +96,19 @@ export function registerTaskRoutes(
 
   app.post<{ Params: { id: string } }>("/tasks/:id/uncomplete", async (request, reply) => {
     const result = await handlers.uncompleteTask.execute({
+      taskId: taskId(request.params.id),
+    }, request.ctx);
+
+    if (!result.ok) {
+      const httpErr = domainErrorToHttp(result.error);
+      return reply.status(httpErr.statusCode).send(httpErr.body);
+    }
+
+    return reply.send(result.value);
+  });
+
+  app.post<{ Params: { id: string } }>("/tasks/:id/cancel", async (request, reply) => {
+    const result = await handlers.cancelTask.execute({
       taskId: taskId(request.params.id),
     }, request.ctx);
 
