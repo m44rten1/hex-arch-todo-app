@@ -6,6 +6,8 @@ export {
   cancelTask,
   deleteTask,
   updateTask,
+  linkRecurrenceRule,
+  unlinkRecurrenceRule,
   isOverdue,
   isDueOn,
   canTransition,

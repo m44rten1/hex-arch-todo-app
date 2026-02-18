@@ -144,6 +144,14 @@ function applyUpdate(task: Task, params: UpdateTaskParams & { title?: string }):
   };
 }
 
+export function linkRecurrenceRule(task: Task, ruleId: RecurrenceRuleId, now: Date): Task {
+  return { ...task, recurrenceRuleId: ruleId, updatedAt: now };
+}
+
+export function unlinkRecurrenceRule(task: Task, now: Date): Task {
+  return { ...task, recurrenceRuleId: null, updatedAt: now };
+}
+
 export function isOverdue(task: Task, now: Date): boolean {
   return (
     task.status === "active" &&
