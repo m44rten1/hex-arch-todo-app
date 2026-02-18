@@ -4,12 +4,14 @@ export type {
   ProjectId,
   WorkspaceId,
   UserId,
+  TagId,
 } from "./Id.js";
 export {
   taskId,
   projectId,
   workspaceId,
   userId,
+  tagId,
 } from "./Id.js";
 export type { Result } from "./Result.js";
 export { ok, err, mapResult } from "./Result.js";

@@ -4,6 +4,7 @@ export type TaskId = Brand<string, "TaskId">;
 export type ProjectId = Brand<string, "ProjectId">;
 export type WorkspaceId = Brand<string, "WorkspaceId">;
 export type UserId = Brand<string, "UserId">;
+export type TagId = Brand<string, "TagId">;
 
 export function taskId(raw: string): TaskId {
   return raw as TaskId;
@@ -19,4 +20,8 @@ export function workspaceId(raw: string): WorkspaceId {
 
 export function userId(raw: string): UserId {
   return raw as UserId;
+}
+
+export function tagId(raw: string): TagId {
+  return raw as TagId;
 }

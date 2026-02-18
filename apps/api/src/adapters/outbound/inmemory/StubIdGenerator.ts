@@ -1,5 +1,5 @@
-import type { TaskId, ProjectId, UserId, WorkspaceId } from "@todo/core/domain/shared/index.js";
-import { taskId, projectId, userId, workspaceId } from "@todo/core/domain/shared/index.js";
+import type { TaskId, ProjectId, UserId, WorkspaceId, TagId } from "@todo/core/domain/shared/index.js";
+import { taskId, projectId, userId, workspaceId, tagId } from "@todo/core/domain/shared/index.js";
 import type { IdGenerator } from "@todo/core/application/ports/outbound/IdGenerator.js";
 import { randomUUID } from "node:crypto";
 
@@ -8,6 +8,7 @@ export class StubIdGenerator implements IdGenerator {
   private nextProjectId: ProjectId | null = null;
   private nextUserId: UserId | null = null;
   private nextWorkspaceId: WorkspaceId | null = null;
+  private nextTagId: TagId | null = null;
 
   taskId(): TaskId {
     if (this.nextTaskId !== null) {
@@ -45,6 +46,15 @@ export class StubIdGenerator implements IdGenerator {
     return workspaceId(randomUUID());
   }
 
+  tagId(): TagId {
+    if (this.nextTagId !== null) {
+      const id = this.nextTagId;
+      this.nextTagId = null;
+      return id;
+    }
+    return tagId(randomUUID());
+  }
+
   setNextTaskId(id: TaskId): void {
     this.nextTaskId = id;
   }
@@ -59,5 +69,9 @@ export class StubIdGenerator implements IdGenerator {
 
   setNextWorkspaceId(id: WorkspaceId): void {
     this.nextWorkspaceId = id;
+  }
+
+  setNextTagId(id: TagId): void {
+    this.nextTagId = id;
   }
 }
