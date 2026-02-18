@@ -42,10 +42,10 @@ describe("GetUpcomingViewHandler", () => {
     const view = await upcomingHandler.execute(CTX, 7);
     expect(view.days).toBe(7);
     expect(view.groups).toHaveLength(3);
-    expect(view.groups[0].date).toBe("2025-06-15");
-    expect(view.groups[0].tasks).toHaveLength(1);
-    expect(view.groups[1].date).toBe("2025-06-16");
-    expect(view.groups[2].date).toBe("2025-06-20");
+    expect(view.groups[0]!.date).toBe("2025-06-15");
+    expect(view.groups[0]!.tasks).toHaveLength(1);
+    expect(view.groups[1]!.date).toBe("2025-06-16");
+    expect(view.groups[2]!.date).toBe("2025-06-20");
   });
 
   it("excludes tasks outside the window", async () => {
@@ -56,7 +56,7 @@ describe("GetUpcomingViewHandler", () => {
 
     const view = await upcomingHandler.execute(CTX, 7);
     expect(view.groups).toHaveLength(1);
-    expect(view.groups[0].tasks[0].title).toBe("Within");
+    expect(view.groups[0]!.tasks[0]!.title).toBe("Within");
   });
 
   it("excludes overdue tasks (before today)", async () => {
@@ -67,7 +67,7 @@ describe("GetUpcomingViewHandler", () => {
 
     const view = await upcomingHandler.execute(CTX, 7);
     expect(view.groups).toHaveLength(1);
-    expect(view.groups[0].tasks[0].title).toBe("Today");
+    expect(view.groups[0]!.tasks[0]!.title).toBe("Today");
   });
 
   it("returns empty groups when no tasks are due", async () => {

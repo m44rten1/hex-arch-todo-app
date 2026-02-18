@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import type { OutgoingHttpHeaders } from "http";
 import { createTestApp, type TestContext } from "./helpers.js";
 
-function extractTokenCookie(res: { headers: Record<string, string | string[] | undefined> }): string | undefined {
+function extractTokenCookie(res: { headers: OutgoingHttpHeaders }): string | undefined {
   const setCookie = res.headers["set-cookie"];
-  const cookieStr = Array.isArray(setCookie) ? setCookie[0] : setCookie;
+  const cookieStr = Array.isArray(setCookie) ? setCookie[0] : typeof setCookie === "string" ? setCookie : undefined;
   const match = cookieStr?.match(/token=([^;]+)/);
   return match?.[1];
 }
