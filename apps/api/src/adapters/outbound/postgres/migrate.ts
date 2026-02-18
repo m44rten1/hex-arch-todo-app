@@ -1,14 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { DbPool } from "./pool.js";
+import { sql } from "kysely";
+import type { Db } from "./db.js";
 
-export async function runMigrations(pool: DbPool): Promise<void> {
-  await pool.query(`
+export async function runMigrations(db: Db): Promise<void> {
+  await sql`
     CREATE TABLE IF NOT EXISTS _migrations (
       name TEXT PRIMARY KEY,
       applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
-  `);
+  `.execute(db);
 
   const migrationsDir = path.join(import.meta.dirname, "migrations");
   const files = fs.readdirSync(migrationsDir)
@@ -16,14 +17,17 @@ export async function runMigrations(pool: DbPool): Promise<void> {
     .sort();
 
   for (const file of files) {
-    const { rowCount } = await pool.query(
-      "SELECT 1 FROM _migrations WHERE name = $1",
-      [file],
-    );
-    if ((rowCount ?? 0) > 0) continue;
+    const { rows } = await db
+      .selectFrom("_migrations")
+      .select("name")
+      .where("name", "=", file)
+      .execute()
+      .then(rows => ({ rows }));
 
-    const sql = fs.readFileSync(path.join(migrationsDir, file), "utf-8");
-    await pool.query(sql);
-    await pool.query("INSERT INTO _migrations (name) VALUES ($1)", [file]);
+    if (rows.length > 0) continue;
+
+    const content = fs.readFileSync(path.join(migrationsDir, file), "utf-8");
+    await sql.raw(content).execute(db);
+    await db.insertInto("_migrations").values({ name: file }).execute();
   }
 }

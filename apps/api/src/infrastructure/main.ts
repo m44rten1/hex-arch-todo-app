@@ -1,5 +1,5 @@
 import { loadConfig } from "./config/env.js";
-import { createPool } from "../adapters/outbound/postgres/pool.js";
+import { createDb } from "../adapters/outbound/postgres/db.js";
 import { runMigrations } from "../adapters/outbound/postgres/migrate.js";
 import { PgTaskRepo } from "../adapters/outbound/postgres/PgTaskRepo.js";
 import { PgProjectRepo } from "../adapters/outbound/postgres/PgProjectRepo.js";
@@ -17,19 +17,19 @@ import { buildApp } from "./server/app.js";
 
 async function main(): Promise<void> {
   const config = loadConfig();
-  const pool = createPool(config.databaseUrl);
+  const db = createDb(config.databaseUrl);
 
-  await runMigrations(pool);
+  await runMigrations(db);
 
   const tokenService = new JoseTokenService(config.jwtSecret);
 
   const handlers = wireHandlers({
-    taskRepo: new PgTaskRepo(pool),
-    projectRepo: new PgProjectRepo(pool),
-    tagRepo: new PgTagRepo(pool),
-    userRepo: new PgUserRepo(pool),
-    workspaceRepo: new PgWorkspaceRepo(pool),
-    registrationStore: new PgUserRegistrationStore(pool),
+    taskRepo: new PgTaskRepo(db),
+    projectRepo: new PgProjectRepo(db),
+    tagRepo: new PgTagRepo(db),
+    userRepo: new PgUserRepo(db),
+    workspaceRepo: new PgWorkspaceRepo(db),
+    registrationStore: new PgUserRegistrationStore(db),
     idGenerator: new UuidIdGenerator(),
     clock: new SystemClock(),
     eventBus: new InMemoryEventBus(),
