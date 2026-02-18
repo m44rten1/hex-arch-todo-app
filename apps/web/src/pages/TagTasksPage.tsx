@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { api, ApiRequestError, type TaskDTO, type TagDTO } from "@/lib/api-client";
 import { useAuth } from "@/context/useAuth";
 import { TaskItem } from "@/components/TaskItem";
+import { TaskDetailPanel } from "@/components/TaskDetailPanel";
 import { Hash } from "lucide-react";
 
 export function TagTasksPage() {
@@ -12,6 +13,7 @@ export function TagTasksPage() {
   const [tasks, setTasks] = useState<TaskDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskDTO | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!tagId) return;
@@ -52,82 +54,109 @@ export function TagTasksPage() {
         ? await api.uncompleteTask(taskId)
         : await api.completeTask(taskId);
       setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
+      if (selectedTask?.id === taskId) setSelectedTask(updated);
     } catch (err) {
       handleApiError(err);
     }
-  }, [handleApiError]);
+  }, [handleApiError, selectedTask?.id]);
 
   const handleUpdate = useCallback(async (taskId: string, title: string) => {
     try {
       const updated = await api.updateTask(taskId, { title });
       setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
+      if (selectedTask?.id === taskId) setSelectedTask(updated);
     } catch (err) {
       handleApiError(err);
     }
-  }, [handleApiError]);
+  }, [handleApiError, selectedTask?.id]);
 
   const handleDelete = useCallback(async (taskId: string) => {
     try {
       await api.deleteTask(taskId);
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      if (selectedTask?.id === taskId) setSelectedTask(null);
     } catch (err) {
       handleApiError(err);
     }
-  }, [handleApiError]);
+  }, [handleApiError, selectedTask?.id]);
+
+  const handleTaskUpdated = useCallback((updated: TaskDTO) => {
+    setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+    setSelectedTask(updated);
+  }, []);
+
+  const handleTaskDeleted = useCallback((taskId: string) => {
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+  }, []);
 
   const activeTasks = tasks.filter((t) => t.status === "active");
   const completedTasks = tasks.filter((t) => t.status === "completed");
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold flex items-center gap-2">
-          <Hash className="h-6 w-6" style={{ color: tag?.color ?? undefined }} />
-          {tag?.name ?? "Tag"}
-        </h1>
+    <div className="flex h-full">
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-2xl px-4 py-8">
+          <div className="mb-6">
+            <h1 className="text-2xl font-semibold flex items-center gap-2">
+              <Hash className="h-6 w-6" style={{ color: tag?.color ?? undefined }} />
+              {tag?.name ?? "Tag"}
+            </h1>
+          </div>
+
+          {loading && <p className="text-muted-foreground">Loading...</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
+
+          {!loading && !error && tasks.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+              <Hash className="h-12 w-12 mb-3" />
+              <p>No tasks with this tag</p>
+            </div>
+          )}
+
+          {activeTasks.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {activeTasks.map((task) => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onToggleComplete={handleToggleComplete}
+                  onUpdate={handleUpdate}
+                  onDelete={handleDelete}
+                  onSelect={setSelectedTask}
+                />
+              ))}
+            </div>
+          )}
+
+          {completedTasks.length > 0 && (
+            <div className="mt-6">
+              <h2 className="text-sm font-semibold text-muted-foreground mb-3">
+                Completed ({completedTasks.length})
+              </h2>
+              <div className="flex flex-col gap-2 opacity-60">
+                {completedTasks.map((task) => (
+                  <TaskItem
+                    key={task.id}
+                    task={task}
+                    onToggleComplete={handleToggleComplete}
+                    onUpdate={handleUpdate}
+                    onDelete={handleDelete}
+                    onSelect={setSelectedTask}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {loading && <p className="text-muted-foreground">Loading...</p>}
-      {error && <p className="text-sm text-destructive">{error}</p>}
-
-      {!loading && !error && tasks.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-          <Hash className="h-12 w-12 mb-3" />
-          <p>No tasks with this tag</p>
-        </div>
-      )}
-
-      {activeTasks.length > 0 && (
-        <div className="flex flex-col gap-2">
-          {activeTasks.map((task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              onToggleComplete={handleToggleComplete}
-              onUpdate={handleUpdate}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
-      )}
-
-      {completedTasks.length > 0 && (
-        <div className="mt-6">
-          <h2 className="text-sm font-semibold text-muted-foreground mb-3">
-            Completed ({completedTasks.length})
-          </h2>
-          <div className="flex flex-col gap-2 opacity-60">
-            {completedTasks.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onToggleComplete={handleToggleComplete}
-                onUpdate={handleUpdate}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
-        </div>
+      {selectedTask && (
+        <TaskDetailPanel
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onTaskUpdated={handleTaskUpdated}
+          onTaskDeleted={handleTaskDeleted}
+        />
       )}
     </div>
   );

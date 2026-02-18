@@ -3,7 +3,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Circle, CheckCircle2, Trash2, Loader2 } from "lucide-react";
+import { Circle, CheckCircle2, Trash2, Loader2, Calendar } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { TaskDTO } from "@/lib/api-client";
 
@@ -12,9 +12,10 @@ interface TaskItemProps {
   onToggleComplete: (taskId: string, currentlyCompleted: boolean) => Promise<void>;
   onUpdate: (taskId: string, title: string) => Promise<void>;
   onDelete: (taskId: string) => Promise<void>;
+  onSelect?: (task: TaskDTO) => void;
 }
 
-export function TaskItem({ task, onToggleComplete, onUpdate, onDelete }: TaskItemProps) {
+export function TaskItem({ task, onToggleComplete, onUpdate, onDelete, onSelect }: TaskItemProps) {
   const isCompleted = task.status === "completed";
   const [toggling, setToggling] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -28,6 +29,14 @@ export function TaskItem({ task, onToggleComplete, onUpdate, onDelete }: TaskIte
       await onToggleComplete(task.id, isCompleted);
     } finally {
       setToggling(false);
+    }
+  }
+
+  function handleTitleClick() {
+    if (onSelect) {
+      onSelect(task);
+    } else {
+      startEditing();
     }
   }
 
@@ -84,16 +93,25 @@ export function TaskItem({ task, onToggleComplete, onUpdate, onDelete }: TaskIte
             className="h-auto py-0 px-0 border-0 shadow-none focus-visible:ring-0 text-sm"
           />
         ) : (
-          <span
-            onClick={startEditing}
-            className={`block truncate ${
-              isCompleted
-                ? "line-through text-muted-foreground"
-                : "cursor-text"
-            }`}
-          >
-            {task.title}
-          </span>
+          <>
+            <span
+              onClick={handleTitleClick}
+              onDoubleClick={onSelect ? startEditing : undefined}
+              className={`block truncate ${
+                isCompleted
+                  ? "line-through text-muted-foreground"
+                  : "cursor-pointer"
+              }`}
+            >
+              {task.title}
+            </span>
+            {task.dueAt && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                <Calendar className="h-3 w-3" />
+                {new Date(task.dueAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+              </span>
+            )}
+          </>
         )}
       </div>
 
