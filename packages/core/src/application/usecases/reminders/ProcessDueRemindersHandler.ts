@@ -1,4 +1,7 @@
-import { markReminderSent, dismissReminder } from "../../../domain/reminder/ReminderRules.js";
+import type { Task } from "../../../domain/task/Task.js";
+import type { Reminder } from "../../../domain/reminder/Reminder.js";
+import { triageReminder } from "../../../domain/reminder/ReminderRules.js";
+import type { ReminderAction } from "../../../domain/reminder/ReminderRules.js";
 import type { ReminderRepo } from "../../ports/outbound/ReminderRepo.js";
 import type { TaskRepo } from "../../ports/outbound/TaskRepo.js";
 import type { NotificationChannel } from "../../ports/outbound/NotificationChannel.js";
@@ -29,32 +32,53 @@ export class ProcessDueRemindersHandler {
 
   async execute(): Promise<void> {
     const now = this.clock.now();
+
+    // --- GATHER ---
     const dueReminders = await this.reminderRepo.findDue(now);
+    const tasks = await this.loadTasks(dueReminders);
 
-    for (const reminder of dueReminders) {
-      const task = await this.taskRepo.findById(reminder.taskId);
+    // --- DECIDE ---
+    const actions = dueReminders.map(reminder =>
+      triageReminder(reminder, tasks.get(reminder.taskId) ?? null, now),
+    );
 
-      if (task === null || task.status !== "active" || task.deletedAt !== null) {
-        const dismissed = dismissReminder(reminder, now);
-        if (dismissed.ok) {
-          await this.reminderRepo.save(dismissed.value);
-        }
-        continue;
+    // --- ACT ---
+    for (const action of actions) {
+      await this.executeAction(action, now);
+    }
+  }
+
+  private async loadTasks(reminders: readonly Reminder[]): Promise<Map<string, Task>> {
+    const tasks = new Map<string, Task>();
+    const seen = new Set<string>();
+    for (const r of reminders) {
+      if (seen.has(r.taskId)) continue;
+      seen.add(r.taskId);
+      const task = await this.taskRepo.findById(r.taskId);
+      if (task !== null) tasks.set(r.taskId, task);
+    }
+    return tasks;
+  }
+
+  private async executeAction(action: ReminderAction, now: Date): Promise<void> {
+    switch (action.type) {
+      case "dismiss":
+        await this.reminderRepo.save(action.reminder);
+        break;
+      case "send": {
+        await this.notificationChannel.send(action.reminder, action.task);
+        await this.reminderRepo.save(action.reminder);
+        const event: ReminderTriggered = {
+          type: "ReminderTriggered",
+          reminderId: action.reminder.id,
+          taskId: action.reminder.taskId,
+          occurredAt: now,
+        };
+        await this.eventBus.publish(event);
+        break;
       }
-
-      const sent = markReminderSent(reminder, now);
-      if (!sent.ok) continue;
-
-      await this.notificationChannel.send(reminder, task);
-      await this.reminderRepo.save(sent.value);
-
-      const event: ReminderTriggered = {
-        type: "ReminderTriggered",
-        reminderId: reminder.id,
-        taskId: reminder.taskId,
-        occurredAt: now,
-      };
-      await this.eventBus.publish(event);
+      case "skip":
+        break;
     }
   }
 }
