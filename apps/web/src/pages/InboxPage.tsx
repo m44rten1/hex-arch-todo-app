@@ -48,7 +48,7 @@ export function InboxPage() {
 
   const handleAdd = useCallback(async (title: string) => {
     try {
-      const created = await api.createTask(title);
+      const created = await api.createTask({ title });
       setActiveTasks((prev) => [created, ...prev]);
     } catch (err) {
       handleApiError(err);
