@@ -1,11 +1,15 @@
 import type { Result, NotFoundError } from "../../../domain/shared/index.js";
-import { ok, err } from "../../../domain/shared/index.js";
+import { err } from "../../../domain/shared/index.js";
+import { deleteTask } from "../../../domain/task/TaskRules.js";
+import type { TaskStateError } from "../../../domain/task/TaskRules.js";
 import type { DeleteTaskCommand } from "../../ports/inbound/commands/DeleteTask.js";
 import type { RequestContext } from "../../RequestContext.js";
 import type { TaskRepo } from "../../ports/outbound/TaskRepo.js";
 import type { Clock } from "../../../domain/shared/Clock.js";
 import type { EventBus } from "../../ports/outbound/EventBus.js";
 import type { TaskDeleted } from "../../../domain/task/TaskEvents.js";
+
+export type DeleteTaskError = TaskStateError | NotFoundError;
 
 export class DeleteTaskHandler {
   private readonly taskRepo: TaskRepo;
@@ -18,21 +22,25 @@ export class DeleteTaskHandler {
     this.eventBus = eventBus;
   }
 
-  async execute(cmd: DeleteTaskCommand, ctx: RequestContext): Promise<Result<void, NotFoundError>> {
+  async execute(cmd: DeleteTaskCommand, ctx: RequestContext): Promise<Result<void, DeleteTaskError>> {
     const existing = await this.taskRepo.findById(cmd.taskId);
     if (existing === null || existing.workspaceId !== ctx.workspaceId) {
       return err({ type: "NotFoundError", entity: "Task", id: cmd.taskId });
     }
 
-    await this.taskRepo.delete(cmd.taskId);
+    const now = this.clock.now();
+    const result = deleteTask(existing, now);
+    if (!result.ok) return result;
+
+    await this.taskRepo.save(result.value);
 
     const event: TaskDeleted = {
       type: "TaskDeleted",
       taskId: cmd.taskId,
-      occurredAt: this.clock.now(),
+      occurredAt: now,
     };
     await this.eventBus.publish(event);
 
-    return ok(undefined);
+    return { ok: true, value: undefined };
   }
 }

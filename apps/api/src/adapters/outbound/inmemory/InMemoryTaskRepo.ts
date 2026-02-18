@@ -6,26 +6,24 @@ export class InMemoryTaskRepo implements TaskRepo {
   private readonly tasks = new Map<TaskId, Task>();
 
   async findById(id: TaskId): Promise<Task | null> {
-    return this.tasks.get(id) ?? null;
+    const task = this.tasks.get(id) ?? null;
+    if (task !== null && task.deletedAt !== null) return null;
+    return task;
   }
 
   async save(task: Task): Promise<void> {
     this.tasks.set(task.id, task);
   }
 
-  async delete(id: TaskId): Promise<void> {
-    this.tasks.delete(id);
-  }
-
   async findInbox(workspaceId: WorkspaceId): Promise<Task[]> {
     return [...this.tasks.values()].filter(
-      t => t.workspaceId === workspaceId && t.projectId === null && t.status === "active",
+      t => t.workspaceId === workspaceId && t.projectId === null && t.status === "active" && t.deletedAt === null,
     );
   }
 
   async findCompletedInbox(workspaceId: WorkspaceId): Promise<Task[]> {
     return [...this.tasks.values()]
-      .filter(t => t.workspaceId === workspaceId && t.projectId === null && t.status === "completed")
+      .filter(t => t.workspaceId === workspaceId && t.projectId === null && t.status === "completed" && t.deletedAt === null)
       .sort((a, b) => (b.completedAt?.getTime() ?? 0) - (a.completedAt?.getTime() ?? 0));
   }
 
@@ -35,12 +33,13 @@ export class InMemoryTaskRepo implements TaskRepo {
         t.workspaceId === workspaceId &&
         t.status === "active" &&
         t.dueAt !== null &&
-        t.dueAt <= date,
+        t.dueAt <= date &&
+        t.deletedAt === null,
     );
   }
 
   async findByProject(projectId: ProjectId): Promise<Task[]> {
-    return [...this.tasks.values()].filter(t => t.projectId === projectId);
+    return [...this.tasks.values()].filter(t => t.projectId === projectId && t.deletedAt === null);
   }
 
   clear(): void {

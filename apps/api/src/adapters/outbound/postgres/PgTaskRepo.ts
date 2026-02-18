@@ -46,7 +46,7 @@ export class PgTaskRepo implements TaskRepo {
 
   async findById(id: TaskId): Promise<Task | null> {
     const { rows } = await this.pool.query<TaskRow>(
-      "SELECT * FROM tasks WHERE id = $1",
+      "SELECT * FROM tasks WHERE id = $1 AND deleted_at IS NULL",
       [id],
     );
     const row = rows[0];
@@ -83,13 +83,9 @@ export class PgTaskRepo implements TaskRepo {
     );
   }
 
-  async delete(id: TaskId): Promise<void> {
-    await this.pool.query("DELETE FROM tasks WHERE id = $1", [id]);
-  }
-
   async findInbox(wsId: WorkspaceId): Promise<Task[]> {
     const { rows } = await this.pool.query<TaskRow>(
-      "SELECT * FROM tasks WHERE workspace_id = $1 AND project_id IS NULL AND status = 'active' ORDER BY created_at DESC",
+      "SELECT * FROM tasks WHERE workspace_id = $1 AND project_id IS NULL AND status = 'active' AND deleted_at IS NULL ORDER BY created_at DESC",
       [wsId],
     );
     return rows.map(rowToTask);
@@ -97,7 +93,7 @@ export class PgTaskRepo implements TaskRepo {
 
   async findCompletedInbox(wsId: WorkspaceId): Promise<Task[]> {
     const { rows } = await this.pool.query<TaskRow>(
-      "SELECT * FROM tasks WHERE workspace_id = $1 AND project_id IS NULL AND status = 'completed' ORDER BY completed_at DESC",
+      "SELECT * FROM tasks WHERE workspace_id = $1 AND project_id IS NULL AND status = 'completed' AND deleted_at IS NULL ORDER BY completed_at DESC",
       [wsId],
     );
     return rows.map(rowToTask);
@@ -105,7 +101,7 @@ export class PgTaskRepo implements TaskRepo {
 
   async findDueOnOrBefore(wsId: WorkspaceId, date: Date): Promise<Task[]> {
     const { rows } = await this.pool.query<TaskRow>(
-      "SELECT * FROM tasks WHERE workspace_id = $1 AND status = 'active' AND due_at <= $2 ORDER BY due_at ASC",
+      "SELECT * FROM tasks WHERE workspace_id = $1 AND status = 'active' AND due_at <= $2 AND deleted_at IS NULL ORDER BY due_at ASC",
       [wsId, date],
     );
     return rows.map(rowToTask);
@@ -113,7 +109,7 @@ export class PgTaskRepo implements TaskRepo {
 
   async findByProject(projId: ProjectId): Promise<Task[]> {
     const { rows } = await this.pool.query<TaskRow>(
-      "SELECT * FROM tasks WHERE project_id = $1 ORDER BY created_at DESC",
+      "SELECT * FROM tasks WHERE project_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC",
       [projId],
     );
     return rows.map(rowToTask);
