@@ -5,7 +5,10 @@ import { InMemoryUserRepo } from "../adapters/outbound/inmemory/InMemoryUserRepo
 import { InMemoryWorkspaceRepo } from "../adapters/outbound/inmemory/InMemoryWorkspaceRepo.js";
 import { InMemoryUserRegistrationStore } from "../adapters/outbound/inmemory/InMemoryUserRegistrationStore.js";
 import { InMemorySearchIndex } from "../adapters/outbound/inmemory/InMemorySearchIndex.js";
+import { InMemoryReminderRepo } from "../adapters/outbound/inmemory/InMemoryReminderRepo.js";
 import { InMemoryEventBus } from "../adapters/outbound/inmemory/InMemoryEventBus.js";
+import { ConsoleNotificationChannel } from "../adapters/outbound/ConsoleNotificationChannel.js";
+import { ReminderScheduler } from "../adapters/inbound/scheduler/ReminderScheduler.js";
 import { UuidIdGenerator } from "../adapters/outbound/UuidIdGenerator.js";
 import { SystemClock } from "../adapters/outbound/SystemClock.js";
 import { StubPasswordHasher } from "../adapters/outbound/inmemory/StubPasswordHasher.js";
@@ -32,6 +35,8 @@ async function main(): Promise<void> {
     workspaceRepo,
     registrationStore: new InMemoryUserRegistrationStore(userRepo, workspaceRepo),
     searchIndex: new InMemorySearchIndex(taskRepo),
+    reminderRepo: new InMemoryReminderRepo(),
+    notificationChannel: new ConsoleNotificationChannel(),
     idGenerator: new UuidIdGenerator(),
     clock: new SystemClock(),
     eventBus: new InMemoryEventBus(),
@@ -40,6 +45,9 @@ async function main(): Promise<void> {
   });
 
   const app = buildApp(handlers, tokenService);
+
+  const scheduler = new ReminderScheduler(handlers.processDueReminders);
+  scheduler.start();
 
   await app.listen({ port, host: "0.0.0.0" });
   console.log(`Dev API running at http://localhost:${port}`);

@@ -5,6 +5,7 @@ export type ProjectId = Brand<string, "ProjectId">;
 export type WorkspaceId = Brand<string, "WorkspaceId">;
 export type UserId = Brand<string, "UserId">;
 export type TagId = Brand<string, "TagId">;
+export type ReminderId = Brand<string, "ReminderId">;
 
 export function taskId(raw: string): TaskId {
   return raw as TaskId;
@@ -24,4 +25,8 @@ export function userId(raw: string): UserId {
 
 export function tagId(raw: string): TagId {
   return raw as TagId;
+}
+
+export function reminderId(raw: string): ReminderId {
+  return raw as ReminderId;
 }

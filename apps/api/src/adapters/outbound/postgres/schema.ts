@@ -55,6 +55,16 @@ export interface TaskTagsTable {
   tag_id: string;
 }
 
+export interface RemindersTable {
+  id: string;
+  task_id: string;
+  workspace_id: string;
+  remind_at: Date;
+  status: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface MigrationsTable {
   name: string;
   applied_at: Generated<Date>;
@@ -67,5 +77,6 @@ export interface Database {
   tasks: TasksTable;
   tags: TagsTable;
   task_tags: TaskTagsTable;
+  reminders: RemindersTable;
   _migrations: MigrationsTable;
 }

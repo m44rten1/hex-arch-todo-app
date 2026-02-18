@@ -8,7 +8,9 @@ import { InMemoryUserRepo } from "../../src/adapters/outbound/inmemory/InMemoryU
 import { InMemoryWorkspaceRepo } from "../../src/adapters/outbound/inmemory/InMemoryWorkspaceRepo.js";
 import { InMemoryUserRegistrationStore } from "../../src/adapters/outbound/inmemory/InMemoryUserRegistrationStore.js";
 import { InMemorySearchIndex } from "../../src/adapters/outbound/inmemory/InMemorySearchIndex.js";
+import { InMemoryReminderRepo } from "../../src/adapters/outbound/inmemory/InMemoryReminderRepo.js";
 import { InMemoryEventBus } from "../../src/adapters/outbound/inmemory/InMemoryEventBus.js";
+import { ConsoleNotificationChannel } from "../../src/adapters/outbound/ConsoleNotificationChannel.js";
 import { StubIdGenerator } from "../../src/adapters/outbound/inmemory/StubIdGenerator.js";
 import { StubClock } from "../../src/adapters/outbound/inmemory/StubClock.js";
 import { StubPasswordHasher } from "../../src/adapters/outbound/inmemory/StubPasswordHasher.js";
@@ -46,6 +48,8 @@ export function createTestApp(now = new Date("2025-06-15T10:00:00Z")): TestConte
     workspaceRepo,
     registrationStore: new InMemoryUserRegistrationStore(userRepo, workspaceRepo),
     searchIndex: new InMemorySearchIndex(taskRepo),
+    reminderRepo: new InMemoryReminderRepo(),
+    notificationChannel: new ConsoleNotificationChannel(),
     idGenerator: idGen,
     clock,
     eventBus,

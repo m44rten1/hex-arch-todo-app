@@ -13,8 +13,8 @@ What exists today: auth (register/login/logout), task CRUD (create/update/comple
 - [x] **Project management** — update project (rename, color), archive/unarchive project, delete project
 - [x] **Tags** — Tag entity, CRUD, task–tag association (join), filter tasks by tag
 - [x] **Upcoming view** — query tasks due in next 7/14/30 days, grouped by day
-- [ ] **Search** — full-text search over title + notes, with filters (status, project, tag, due range)
-- [ ] **Reminders** — Reminder entity, scheduling, notification delivery (at least one channel)
+- [x] **Search** — full-text search over title + notes, with filters (status, project, tag, due range)
+- [x] **Reminders** — Reminder entity, scheduling, notification delivery (at least one channel)
 - [ ] **Recurrence** — RecurrenceRule entity, daily/weekly/monthly patterns, auto-create next instance on completion
 - [ ] **Consistent error contract** — standardize error codes (`VALIDATION_ERROR`, `NOT_FOUND`, `FORBIDDEN`, `CONFLICT`) across all endpoints
 

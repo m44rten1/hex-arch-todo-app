@@ -5,3 +5,5 @@ export { toProjectDTO } from "./ProjectDTO.js";
 export type { TodayViewDTO } from "./TodayViewDTO.js";
 export type { AuthDTO, UserDTO } from "./AuthDTO.js";
 export { toUserDTO } from "./AuthDTO.js";
+export type { ReminderDTO } from "./ReminderDTO.js";
+export { toReminderDTO } from "./ReminderDTO.js";

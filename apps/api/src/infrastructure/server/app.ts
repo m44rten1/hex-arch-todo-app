@@ -6,6 +6,7 @@ import { registerPublicAuthRoutes, registerAuthRoutes } from "../../adapters/inb
 import { registerTaskRoutes } from "../../adapters/inbound/http/routes/taskRoutes.js";
 import { registerProjectRoutes } from "../../adapters/inbound/http/routes/projectRoutes.js";
 import { registerTagRoutes } from "../../adapters/inbound/http/routes/tagRoutes.js";
+import { registerReminderRoutes } from "../../adapters/inbound/http/routes/reminderRoutes.js";
 import { authGuard } from "../../adapters/inbound/http/middleware/authGuard.js";
 import type { AppHandlers } from "../di/container.js";
 
@@ -32,6 +33,7 @@ export function buildApp(
     registerTaskRoutes(protectedScope, handlers.tasks);
     registerProjectRoutes(protectedScope, handlers.projects);
     registerTagRoutes(protectedScope, handlers.tags);
+    registerReminderRoutes(protectedScope, handlers.reminders);
   });
 
   return app;

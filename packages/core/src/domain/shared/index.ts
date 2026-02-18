@@ -5,6 +5,7 @@ export type {
   WorkspaceId,
   UserId,
   TagId,
+  ReminderId,
 } from "./Id.js";
 export {
   taskId,
@@ -12,6 +13,7 @@ export {
   workspaceId,
   userId,
   tagId,
+  reminderId,
 } from "./Id.js";
 export type { Result } from "./Result.js";
 export { ok, err, mapResult } from "./Result.js";

@@ -7,3 +7,4 @@ export { StubIdGenerator } from "./StubIdGenerator.js";
 export { StubClock } from "./StubClock.js";
 export { StubPasswordHasher } from "./StubPasswordHasher.js";
 export { StubTokenService } from "./StubTokenService.js";
+export { InMemoryReminderRepo } from "./InMemoryReminderRepo.js";

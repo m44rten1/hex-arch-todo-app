@@ -14,3 +14,7 @@ export type { LoginUserCommand } from "./LoginUser.js";
 export type { CreateTagCommand } from "./CreateTag.js";
 export type { UpdateTagCommand } from "./UpdateTag.js";
 export type { DeleteTagCommand } from "./DeleteTag.js";
+export type { CreateReminderCommand } from "./CreateReminder.js";
+export type { UpdateReminderCommand } from "./UpdateReminder.js";
+export type { DismissReminderCommand } from "./DismissReminder.js";
+export type { DeleteReminderCommand } from "./DeleteReminder.js";

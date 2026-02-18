@@ -1,4 +1,4 @@
-import type { TaskId, ProjectId, UserId, WorkspaceId, TagId } from "../../../domain/shared/index.js";
+import type { TaskId, ProjectId, UserId, WorkspaceId, TagId, ReminderId } from "../../../domain/shared/index.js";
 
 export interface IdGenerator {
   taskId(): TaskId;
@@ -6,4 +6,5 @@ export interface IdGenerator {
   userId(): UserId;
   workspaceId(): WorkspaceId;
   tagId(): TagId;
+  reminderId(): ReminderId;
 }
