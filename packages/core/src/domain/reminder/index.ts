@@ -4,11 +4,13 @@ export {
   updateReminderTime,
   dismissReminder,
   markReminderSent,
+  triageReminder,
 } from "./ReminderRules.js";
 export type {
   CreateReminderParams,
   ReminderValidationError,
   ReminderStateError,
+  ReminderAction,
 } from "./ReminderRules.js";
 export type {
   ReminderEvent,
