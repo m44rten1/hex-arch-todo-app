@@ -66,16 +66,17 @@ export function registerRecurrenceRoutes(
   app.get<{ Params: { taskId: string } }>(
     "/tasks/:taskId/recurrence",
     async (request, reply) => {
-      const rule = await handlers.getTaskRecurrence.execute(
+      const result = await handlers.getTaskRecurrence.execute(
         taskId(request.params.taskId),
         request.ctx,
       );
 
-      if (rule === null) {
-        return reply.status(404).send({ code: "NOT_FOUND", message: "No recurrence rule set" });
+      if (!result.ok) {
+        const httpErr = domainErrorToHttp(result.error);
+        return reply.status(httpErr.statusCode).send(httpErr.body);
       }
 
-      return reply.send(rule);
+      return reply.send(result.value);
     },
   );
 }
