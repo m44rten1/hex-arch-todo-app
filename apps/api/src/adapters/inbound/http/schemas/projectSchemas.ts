@@ -5,6 +5,11 @@ export const createProjectSchema = z.object({
   color: z.string().optional(),
 });
 
+export const updateProjectSchema = z.object({
+  name: z.string().optional(),
+  color: z.string().nullable().optional(),
+});
+
 export const projectIdParamSchema = z.object({
   id: z.string(),
 });

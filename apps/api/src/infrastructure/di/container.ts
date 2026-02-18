@@ -5,6 +5,7 @@ import { UncompleteTaskHandler } from "@todo/core/application/usecases/tasks/Unc
 import { DeleteTaskHandler } from "@todo/core/application/usecases/tasks/DeleteTaskHandler.js";
 import { CancelTaskHandler } from "@todo/core/application/usecases/tasks/CancelTaskHandler.js";
 import { CreateProjectHandler } from "@todo/core/application/usecases/projects/CreateProjectHandler.js";
+import { UpdateProjectHandler } from "@todo/core/application/usecases/projects/UpdateProjectHandler.js";
 import { GetInboxHandler } from "@todo/core/application/usecases/queries/GetInboxHandler.js";
 import { GetCompletedInboxHandler } from "@todo/core/application/usecases/queries/GetCompletedInboxHandler.js";
 import { GetTodayViewHandler } from "@todo/core/application/usecases/queries/GetTodayViewHandler.js";
@@ -64,6 +65,7 @@ export function wireHandlers(deps: Dependencies): AppHandlers {
     },
     projects: {
       createProject: new CreateProjectHandler(projectRepo, idGenerator, clock, eventBus),
+      updateProject: new UpdateProjectHandler(projectRepo, clock, eventBus),
       listProjects: new ListProjectsHandler(projectRepo),
       getProject: new GetProjectHandler(projectRepo, taskRepo),
     },
