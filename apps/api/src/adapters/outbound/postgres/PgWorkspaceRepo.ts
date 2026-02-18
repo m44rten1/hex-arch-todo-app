@@ -23,7 +23,11 @@ function rowToWorkspace(row: WorkspaceRow): Workspace {
 }
 
 export class PgWorkspaceRepo implements WorkspaceRepo {
-  constructor(private readonly pool: DbPool) {}
+  private readonly pool: DbPool;
+
+  constructor(pool: DbPool) {
+    this.pool = pool;
+  }
 
   async findById(id: WorkspaceId): Promise<Workspace | null> {
     const { rows } = await this.pool.query<WorkspaceRow>(

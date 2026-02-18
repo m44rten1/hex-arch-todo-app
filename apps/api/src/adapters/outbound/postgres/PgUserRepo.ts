@@ -23,7 +23,11 @@ function rowToUser(row: UserRow): User {
 }
 
 export class PgUserRepo implements UserRepo {
-  constructor(private readonly pool: DbPool) {}
+  private readonly pool: DbPool;
+
+  constructor(pool: DbPool) {
+    this.pool = pool;
+  }
 
   async findById(id: UserId): Promise<User | null> {
     const { rows } = await this.pool.query<UserRow>(

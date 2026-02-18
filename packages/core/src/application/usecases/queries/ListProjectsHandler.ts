@@ -4,7 +4,11 @@ import { toProjectDTO } from "../../dto/ProjectDTO.js";
 import type { RequestContext } from "../../RequestContext.js";
 
 export class ListProjectsHandler {
-  constructor(private readonly projectRepo: ProjectRepo) {}
+  private readonly projectRepo: ProjectRepo;
+
+  constructor(projectRepo: ProjectRepo) {
+    this.projectRepo = projectRepo;
+  }
 
   async execute(ctx: RequestContext): Promise<readonly ProjectDTO[]> {
     const projects = await this.projectRepo.findByWorkspace(ctx.workspaceId);

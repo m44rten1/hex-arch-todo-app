@@ -36,7 +36,11 @@ function rowToTask(row: TaskRow): Task {
 }
 
 export class PgTaskRepo implements TaskRepo {
-  constructor(private readonly pool: DbPool) {}
+  private readonly pool: DbPool;
+
+  constructor(pool: DbPool) {
+    this.pool = pool;
+  }
 
   async findById(id: TaskId): Promise<Task | null> {
     const { rows } = await this.pool.query<TaskRow>(

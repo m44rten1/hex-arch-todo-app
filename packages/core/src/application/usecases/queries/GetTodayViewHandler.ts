@@ -6,10 +6,13 @@ import { toTaskDTO } from "../../dto/TaskDTO.js";
 import type { RequestContext } from "../../RequestContext.js";
 
 export class GetTodayViewHandler {
-  constructor(
-    private readonly taskRepo: TaskRepo,
-    private readonly clock: Clock,
-  ) {}
+  private readonly taskRepo: TaskRepo;
+  private readonly clock: Clock;
+
+  constructor(taskRepo: TaskRepo, clock: Clock) {
+    this.taskRepo = taskRepo;
+    this.clock = clock;
+  }
 
   async execute(ctx: RequestContext): Promise<TodayViewDTO> {
     const now = this.clock.now();

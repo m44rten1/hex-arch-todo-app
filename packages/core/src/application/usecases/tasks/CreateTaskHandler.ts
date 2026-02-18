@@ -12,12 +12,17 @@ import type { RequestContext } from "../../RequestContext.js";
 import type { TaskCreated } from "../../../domain/task/TaskEvents.js";
 
 export class CreateTaskHandler {
-  constructor(
-    private readonly taskRepo: TaskRepo,
-    private readonly idGenerator: IdGenerator,
-    private readonly clock: Clock,
-    private readonly eventBus: EventBus,
-  ) {}
+  private readonly taskRepo: TaskRepo;
+  private readonly idGenerator: IdGenerator;
+  private readonly clock: Clock;
+  private readonly eventBus: EventBus;
+
+  constructor(taskRepo: TaskRepo, idGenerator: IdGenerator, clock: Clock, eventBus: EventBus) {
+    this.taskRepo = taskRepo;
+    this.idGenerator = idGenerator;
+    this.clock = clock;
+    this.eventBus = eventBus;
+  }
 
   async execute(
     cmd: CreateTaskCommand,

@@ -17,15 +17,31 @@ import type { UserRegistered } from "../../../domain/user/UserEvents.js";
 export type RegisterUserError = ValidationError | ConflictError;
 
 export class RegisterUserHandler {
+  private readonly userRepo: UserRepo;
+  private readonly workspaceRepo: WorkspaceRepo;
+  private readonly passwordHasher: PasswordHasher;
+  private readonly tokenService: TokenService;
+  private readonly idGenerator: IdGenerator;
+  private readonly clock: Clock;
+  private readonly eventBus: EventBus;
+
   constructor(
-    private readonly userRepo: UserRepo,
-    private readonly workspaceRepo: WorkspaceRepo,
-    private readonly passwordHasher: PasswordHasher,
-    private readonly tokenService: TokenService,
-    private readonly idGenerator: IdGenerator,
-    private readonly clock: Clock,
-    private readonly eventBus: EventBus,
-  ) {}
+    userRepo: UserRepo,
+    workspaceRepo: WorkspaceRepo,
+    passwordHasher: PasswordHasher,
+    tokenService: TokenService,
+    idGenerator: IdGenerator,
+    clock: Clock,
+    eventBus: EventBus,
+  ) {
+    this.userRepo = userRepo;
+    this.workspaceRepo = workspaceRepo;
+    this.passwordHasher = passwordHasher;
+    this.tokenService = tokenService;
+    this.idGenerator = idGenerator;
+    this.clock = clock;
+    this.eventBus = eventBus;
+  }
 
   async execute(cmd: RegisterUserCommand): Promise<Result<AuthDTO, RegisterUserError>> {
     const passwordResult = validatePassword(cmd.password);

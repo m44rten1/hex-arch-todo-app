@@ -14,11 +14,15 @@ import type { TaskUpdated } from "../../../domain/task/TaskEvents.js";
 export type UpdateTaskError = TaskValidationError | NotFoundError;
 
 export class UpdateTaskHandler {
-  constructor(
-    private readonly taskRepo: TaskRepo,
-    private readonly clock: Clock,
-    private readonly eventBus: EventBus,
-  ) {}
+  private readonly taskRepo: TaskRepo;
+  private readonly clock: Clock;
+  private readonly eventBus: EventBus;
+
+  constructor(taskRepo: TaskRepo, clock: Clock, eventBus: EventBus) {
+    this.taskRepo = taskRepo;
+    this.clock = clock;
+    this.eventBus = eventBus;
+  }
 
   async execute(cmd: UpdateTaskCommand, ctx: RequestContext): Promise<Result<TaskDTO, UpdateTaskError>> {
     const existing = await this.taskRepo.findById(cmd.taskId);

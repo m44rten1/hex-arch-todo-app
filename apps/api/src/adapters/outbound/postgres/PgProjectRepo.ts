@@ -27,7 +27,11 @@ function rowToProject(row: ProjectRow): Project {
 }
 
 export class PgProjectRepo implements ProjectRepo {
-  constructor(private readonly pool: DbPool) {}
+  private readonly pool: DbPool;
+
+  constructor(pool: DbPool) {
+    this.pool = pool;
+  }
 
   async findById(id: ProjectId): Promise<Project | null> {
     const { rows } = await this.pool.query<ProjectRow>(

@@ -12,12 +12,17 @@ import type { RequestContext } from "../../RequestContext.js";
 import type { ProjectCreated } from "../../../domain/project/ProjectEvents.js";
 
 export class CreateProjectHandler {
-  constructor(
-    private readonly projectRepo: ProjectRepo,
-    private readonly idGenerator: IdGenerator,
-    private readonly clock: Clock,
-    private readonly eventBus: EventBus,
-  ) {}
+  private readonly projectRepo: ProjectRepo;
+  private readonly idGenerator: IdGenerator;
+  private readonly clock: Clock;
+  private readonly eventBus: EventBus;
+
+  constructor(projectRepo: ProjectRepo, idGenerator: IdGenerator, clock: Clock, eventBus: EventBus) {
+    this.projectRepo = projectRepo;
+    this.idGenerator = idGenerator;
+    this.clock = clock;
+    this.eventBus = eventBus;
+  }
 
   async execute(
     cmd: CreateProjectCommand,

@@ -4,7 +4,11 @@ import { toTaskDTO } from "../../dto/TaskDTO.js";
 import type { RequestContext } from "../../RequestContext.js";
 
 export class GetCompletedInboxHandler {
-  constructor(private readonly taskRepo: TaskRepo) {}
+  private readonly taskRepo: TaskRepo;
+
+  constructor(taskRepo: TaskRepo) {
+    this.taskRepo = taskRepo;
+  }
 
   async execute(ctx: RequestContext): Promise<readonly TaskDTO[]> {
     const tasks = await this.taskRepo.findCompletedInbox(ctx.workspaceId);

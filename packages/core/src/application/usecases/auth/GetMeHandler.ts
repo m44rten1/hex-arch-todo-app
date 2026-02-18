@@ -7,7 +7,11 @@ import type { Result } from "../../../domain/shared/Result.js";
 import { ok, err } from "../../../domain/shared/Result.js";
 
 export class GetMeHandler {
-  constructor(private readonly userRepo: UserRepo) {}
+  private readonly userRepo: UserRepo;
+
+  constructor(userRepo: UserRepo) {
+    this.userRepo = userRepo;
+  }
 
   async execute(ctx: RequestContext): Promise<Result<UserDTO, DomainError>> {
     const user = await this.userRepo.findById(ctx.userId);

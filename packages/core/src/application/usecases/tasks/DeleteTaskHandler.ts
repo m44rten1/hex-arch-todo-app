@@ -8,11 +8,15 @@ import type { EventBus } from "../../ports/outbound/EventBus.js";
 import type { TaskDeleted } from "../../../domain/task/TaskEvents.js";
 
 export class DeleteTaskHandler {
-  constructor(
-    private readonly taskRepo: TaskRepo,
-    private readonly clock: Clock,
-    private readonly eventBus: EventBus,
-  ) {}
+  private readonly taskRepo: TaskRepo;
+  private readonly clock: Clock;
+  private readonly eventBus: EventBus;
+
+  constructor(taskRepo: TaskRepo, clock: Clock, eventBus: EventBus) {
+    this.taskRepo = taskRepo;
+    this.clock = clock;
+    this.eventBus = eventBus;
+  }
 
   async execute(cmd: DeleteTaskCommand, ctx: RequestContext): Promise<Result<void, NotFoundError>> {
     const existing = await this.taskRepo.findById(cmd.taskId);

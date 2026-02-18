@@ -14,11 +14,15 @@ import type { TaskUncompleted } from "../../../domain/task/TaskEvents.js";
 export type UncompleteTaskError = TaskStateError | NotFoundError;
 
 export class UncompleteTaskHandler {
-  constructor(
-    private readonly taskRepo: TaskRepo,
-    private readonly clock: Clock,
-    private readonly eventBus: EventBus,
-  ) {}
+  private readonly taskRepo: TaskRepo;
+  private readonly clock: Clock;
+  private readonly eventBus: EventBus;
+
+  constructor(taskRepo: TaskRepo, clock: Clock, eventBus: EventBus) {
+    this.taskRepo = taskRepo;
+    this.clock = clock;
+    this.eventBus = eventBus;
+  }
 
   async execute(cmd: UncompleteTaskCommand, ctx: RequestContext): Promise<Result<TaskDTO, UncompleteTaskError>> {
     const existing = await this.taskRepo.findById(cmd.taskId);

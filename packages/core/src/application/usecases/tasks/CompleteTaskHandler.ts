@@ -14,11 +14,15 @@ import type { TaskCompleted } from "../../../domain/task/TaskEvents.js";
 export type CompleteTaskError = TaskStateError | NotFoundError;
 
 export class CompleteTaskHandler {
-  constructor(
-    private readonly taskRepo: TaskRepo,
-    private readonly clock: Clock,
-    private readonly eventBus: EventBus,
-  ) {}
+  private readonly taskRepo: TaskRepo;
+  private readonly clock: Clock;
+  private readonly eventBus: EventBus;
+
+  constructor(taskRepo: TaskRepo, clock: Clock, eventBus: EventBus) {
+    this.taskRepo = taskRepo;
+    this.clock = clock;
+    this.eventBus = eventBus;
+  }
 
   async execute(cmd: CompleteTaskCommand, ctx: RequestContext): Promise<Result<TaskDTO, CompleteTaskError>> {
     const existing = await this.taskRepo.findById(cmd.taskId);

@@ -15,10 +15,13 @@ export interface ProjectDetailDTO {
 }
 
 export class GetProjectHandler {
-  constructor(
-    private readonly projectRepo: ProjectRepo,
-    private readonly taskRepo: TaskRepo,
-  ) {}
+  private readonly projectRepo: ProjectRepo;
+  private readonly taskRepo: TaskRepo;
+
+  constructor(projectRepo: ProjectRepo, taskRepo: TaskRepo) {
+    this.projectRepo = projectRepo;
+    this.taskRepo = taskRepo;
+  }
 
   async execute(query: GetProjectQuery, ctx: RequestContext): Promise<Result<ProjectDetailDTO, NotFoundError>> {
     const project = await this.projectRepo.findById(query.projectId);

@@ -15,12 +15,17 @@ const INVALID_CREDENTIALS: AuthenticationError = {
 };
 
 export class LoginUserHandler {
-  constructor(
-    private readonly userRepo: UserRepo,
-    private readonly workspaceRepo: WorkspaceRepo,
-    private readonly passwordHasher: PasswordHasher,
-    private readonly tokenService: TokenService,
-  ) {}
+  private readonly userRepo: UserRepo;
+  private readonly workspaceRepo: WorkspaceRepo;
+  private readonly passwordHasher: PasswordHasher;
+  private readonly tokenService: TokenService;
+
+  constructor(userRepo: UserRepo, workspaceRepo: WorkspaceRepo, passwordHasher: PasswordHasher, tokenService: TokenService) {
+    this.userRepo = userRepo;
+    this.workspaceRepo = workspaceRepo;
+    this.passwordHasher = passwordHasher;
+    this.tokenService = tokenService;
+  }
 
   async execute(cmd: LoginUserCommand): Promise<Result<AuthDTO, AuthenticationError>> {
     const emailResult = validateEmail(cmd.email);
