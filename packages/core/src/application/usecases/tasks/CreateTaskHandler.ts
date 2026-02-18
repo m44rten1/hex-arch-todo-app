@@ -40,6 +40,7 @@ export class CreateTaskHandler {
       projectId: cmd.projectId,
       dueAt: cmd.dueAt,
       notes: cmd.notes,
+      tagIds: cmd.tagIds,
     });
 
     if (!result.ok) return result;

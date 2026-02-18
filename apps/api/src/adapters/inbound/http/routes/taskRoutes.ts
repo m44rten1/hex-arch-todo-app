@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { taskId, projectId } from "@todo/core/domain/shared/index.js";
+import { taskId, projectId, tagId } from "@todo/core/domain/shared/index.js";
 import type { CreateTaskHandler } from "@todo/core/application/usecases/tasks/CreateTaskHandler.js";
 import type { UpdateTaskHandler } from "@todo/core/application/usecases/tasks/UpdateTaskHandler.js";
 import type { CompleteTaskHandler } from "@todo/core/application/usecases/tasks/CompleteTaskHandler.js";
@@ -42,6 +42,7 @@ export function registerTaskRoutes(
         projectId: parsed.data.projectId ? projectId(parsed.data.projectId) : undefined,
         dueAt: parsed.data.dueAt ? new Date(parsed.data.dueAt) : undefined,
         notes: parsed.data.notes,
+        tagIds: parsed.data.tagIds?.map(id => tagId(id)),
       },
       ctx,
     );
@@ -71,6 +72,7 @@ export function registerTaskRoutes(
       dueAt: parsed.data.dueAt !== undefined
         ? (parsed.data.dueAt !== null ? new Date(parsed.data.dueAt) : null)
         : undefined,
+      tagIds: parsed.data.tagIds?.map(id => tagId(id)),
     }, request.ctx);
 
     if (!result.ok) {

@@ -21,6 +21,7 @@ import { CreateTagHandler } from "@todo/core/application/usecases/tags/CreateTag
 import { UpdateTagHandler } from "@todo/core/application/usecases/tags/UpdateTagHandler.js";
 import { DeleteTagHandler } from "@todo/core/application/usecases/tags/DeleteTagHandler.js";
 import { ListTagsHandler } from "@todo/core/application/usecases/tags/ListTagsHandler.js";
+import { GetTasksByTagHandler } from "@todo/core/application/usecases/queries/GetTasksByTagHandler.js";
 import type { TaskRepo } from "@todo/core/application/ports/outbound/TaskRepo.js";
 import type { ProjectRepo } from "@todo/core/application/ports/outbound/ProjectRepo.js";
 import type { UserRepo } from "@todo/core/application/ports/outbound/UserRepo.js";
@@ -88,6 +89,7 @@ export function wireHandlers(deps: Dependencies): AppHandlers {
       updateTag: new UpdateTagHandler(tagRepo, clock, eventBus),
       deleteTag: new DeleteTagHandler(tagRepo, clock, eventBus),
       listTags: new ListTagsHandler(tagRepo),
+      getTasksByTag: new GetTasksByTagHandler(taskRepo),
     },
     auth: {
       register: new RegisterUserHandler(

@@ -4,6 +4,7 @@ import type { CreateTagHandler } from "@todo/core/application/usecases/tags/Crea
 import type { UpdateTagHandler } from "@todo/core/application/usecases/tags/UpdateTagHandler.js";
 import type { DeleteTagHandler } from "@todo/core/application/usecases/tags/DeleteTagHandler.js";
 import type { ListTagsHandler } from "@todo/core/application/usecases/tags/ListTagsHandler.js";
+import type { GetTasksByTagHandler } from "@todo/core/application/usecases/queries/GetTasksByTagHandler.js";
 import { createTagSchema, updateTagSchema } from "../schemas/tagSchemas.js";
 import { domainErrorToHttp, zodValidationError } from "../middleware/errorMapper.js";
 
@@ -12,6 +13,7 @@ export interface TagHandlers {
   updateTag: UpdateTagHandler;
   deleteTag: DeleteTagHandler;
   listTags: ListTagsHandler;
+  getTasksByTag: GetTasksByTagHandler;
 }
 
 export function registerTagRoutes(
@@ -75,5 +77,13 @@ export function registerTagRoutes(
   app.get("/tags", async (request, reply) => {
     const tags = await handlers.listTags.execute(request.ctx);
     return reply.send(tags);
+  });
+
+  app.get<{ Params: { id: string } }>("/tags/:id/tasks", async (request, reply) => {
+    const tasks = await handlers.getTasksByTag.execute(
+      tagId(request.params.id),
+      request.ctx,
+    );
+    return reply.send(tasks);
   });
 }

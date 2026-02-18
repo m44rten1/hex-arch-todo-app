@@ -1,4 +1,4 @@
-import type { TaskId, ProjectId } from "../../../../domain/shared/index.js";
+import type { TaskId, ProjectId, TagId } from "../../../../domain/shared/index.js";
 
 export interface UpdateTaskCommand {
   readonly taskId: TaskId;
@@ -6,4 +6,5 @@ export interface UpdateTaskCommand {
   readonly notes?: string | null;
   readonly projectId?: ProjectId | null;
   readonly dueAt?: Date | null;
+  readonly tagIds?: readonly TagId[];
 }

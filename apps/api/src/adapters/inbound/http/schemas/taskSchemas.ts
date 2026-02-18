@@ -5,6 +5,7 @@ export const createTaskSchema = z.object({
   projectId: z.string().optional(),
   dueAt: z.string().datetime().optional(),
   notes: z.string().optional(),
+  tagIds: z.array(z.string()).optional(),
 });
 
 export const updateTaskSchema = z.object({
@@ -12,6 +13,7 @@ export const updateTaskSchema = z.object({
   notes: z.string().nullable().optional(),
   projectId: z.string().nullable().optional(),
   dueAt: z.string().datetime().nullable().optional(),
+  tagIds: z.array(z.string()).optional(),
 });
 
 export const taskIdParamSchema = z.object({

@@ -36,6 +36,7 @@ export class UpdateTaskHandler {
       notes: cmd.notes,
       projectId: cmd.projectId,
       dueAt: cmd.dueAt,
+      tagIds: cmd.tagIds,
       now,
     });
 
