@@ -102,6 +102,14 @@ export class PgTaskRepo implements TaskRepo {
     return this.hydrateTags(rows);
   }
 
+  async findDueBetween(wsId: WorkspaceId, from: Date, to: Date): Promise<Task[]> {
+    const { rows } = await this.pool.query<TaskRow>(
+      "SELECT * FROM tasks WHERE workspace_id = $1 AND status = 'active' AND due_at >= $2 AND due_at <= $3 AND deleted_at IS NULL ORDER BY due_at ASC",
+      [wsId, from, to],
+    );
+    return this.hydrateTags(rows);
+  }
+
   async findByProject(projId: ProjectId): Promise<Task[]> {
     const { rows } = await this.pool.query<TaskRow>(
       "SELECT * FROM tasks WHERE project_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC",

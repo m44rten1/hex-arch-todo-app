@@ -38,6 +38,18 @@ export class InMemoryTaskRepo implements TaskRepo {
     );
   }
 
+  async findDueBetween(workspaceId: WorkspaceId, from: Date, to: Date): Promise<Task[]> {
+    return [...this.tasks.values()].filter(
+      t =>
+        t.workspaceId === workspaceId &&
+        t.status === "active" &&
+        t.dueAt !== null &&
+        t.dueAt >= from &&
+        t.dueAt <= to &&
+        t.deletedAt === null,
+    );
+  }
+
   async findByProject(projectId: ProjectId): Promise<Task[]> {
     return [...this.tasks.values()].filter(t => t.projectId === projectId && t.deletedAt === null);
   }
