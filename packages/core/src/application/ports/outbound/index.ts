@@ -2,6 +2,7 @@ export type { TaskRepo } from "./TaskRepo.js";
 export type { ProjectRepo } from "./ProjectRepo.js";
 export type { UserRepo } from "./UserRepo.js";
 export type { WorkspaceRepo } from "./WorkspaceRepo.js";
+export type { UserRegistrationStore } from "./UserRegistrationStore.js";
 export type { IdGenerator } from "./IdGenerator.js";
 export type { EventBus } from "./EventBus.js";
 export type { PasswordHasher } from "./PasswordHasher.js";
