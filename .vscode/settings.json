@@ -1,0 +1,7 @@
+{
+  "eslint.workingDirectories": [
+    { "directory": "packages/core", "changeProcessCWD": true },
+    { "directory": "apps/api", "changeProcessCWD": true },
+    { "directory": "apps/web", "changeProcessCWD": true }
+  ]
+}
