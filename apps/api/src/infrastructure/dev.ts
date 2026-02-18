@@ -1,5 +1,6 @@
 import { InMemoryTaskRepo } from "../adapters/outbound/inmemory/InMemoryTaskRepo.js";
 import { InMemoryProjectRepo } from "../adapters/outbound/inmemory/InMemoryProjectRepo.js";
+import { InMemoryTagRepo } from "../adapters/outbound/inmemory/InMemoryTagRepo.js";
 import { InMemoryUserRepo } from "../adapters/outbound/inmemory/InMemoryUserRepo.js";
 import { InMemoryWorkspaceRepo } from "../adapters/outbound/inmemory/InMemoryWorkspaceRepo.js";
 import { InMemoryEventBus } from "../adapters/outbound/inmemory/InMemoryEventBus.js";
@@ -19,6 +20,7 @@ async function main(): Promise<void> {
   const handlers = wireHandlers({
     taskRepo: new InMemoryTaskRepo(),
     projectRepo: new InMemoryProjectRepo(),
+    tagRepo: new InMemoryTagRepo(),
     userRepo: new InMemoryUserRepo(),
     workspaceRepo: new InMemoryWorkspaceRepo(),
     idGenerator: new UuidIdGenerator(),

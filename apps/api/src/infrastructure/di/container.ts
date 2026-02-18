@@ -17,6 +17,10 @@ import { GetProjectHandler } from "@todo/core/application/usecases/queries/GetPr
 import { RegisterUserHandler } from "@todo/core/application/usecases/auth/RegisterUserHandler.js";
 import { LoginUserHandler } from "@todo/core/application/usecases/auth/LoginUserHandler.js";
 import { GetMeHandler } from "@todo/core/application/usecases/auth/GetMeHandler.js";
+import { CreateTagHandler } from "@todo/core/application/usecases/tags/CreateTagHandler.js";
+import { UpdateTagHandler } from "@todo/core/application/usecases/tags/UpdateTagHandler.js";
+import { DeleteTagHandler } from "@todo/core/application/usecases/tags/DeleteTagHandler.js";
+import { ListTagsHandler } from "@todo/core/application/usecases/tags/ListTagsHandler.js";
 import type { TaskRepo } from "@todo/core/application/ports/outbound/TaskRepo.js";
 import type { ProjectRepo } from "@todo/core/application/ports/outbound/ProjectRepo.js";
 import type { UserRepo } from "@todo/core/application/ports/outbound/UserRepo.js";
@@ -28,11 +32,14 @@ import type { PasswordHasher } from "@todo/core/application/ports/outbound/Passw
 import type { TokenService } from "@todo/core/application/ports/outbound/TokenService.js";
 import type { TaskHandlers } from "../../adapters/inbound/http/routes/taskRoutes.js";
 import type { ProjectHandlers } from "../../adapters/inbound/http/routes/projectRoutes.js";
+import type { TagHandlers } from "../../adapters/inbound/http/routes/tagRoutes.js";
 import type { AuthHandlers } from "../../adapters/inbound/http/routes/authRoutes.js";
+import type { TagRepo } from "@todo/core/application/ports/outbound/TagRepo.js";
 
 export interface Dependencies {
   readonly taskRepo: TaskRepo;
   readonly projectRepo: ProjectRepo;
+  readonly tagRepo: TagRepo;
   readonly userRepo: UserRepo;
   readonly workspaceRepo: WorkspaceRepo;
   readonly idGenerator: IdGenerator;
@@ -45,12 +52,13 @@ export interface Dependencies {
 export interface AppHandlers {
   readonly tasks: TaskHandlers;
   readonly projects: ProjectHandlers;
+  readonly tags: TagHandlers;
   readonly auth: AuthHandlers;
 }
 
 export function wireHandlers(deps: Dependencies): AppHandlers {
   const {
-    taskRepo, projectRepo, userRepo, workspaceRepo,
+    taskRepo, projectRepo, tagRepo, userRepo, workspaceRepo,
     idGenerator, clock, eventBus, passwordHasher, tokenService,
   } = deps;
 
@@ -74,6 +82,12 @@ export function wireHandlers(deps: Dependencies): AppHandlers {
       deleteProject: new DeleteProjectHandler(projectRepo, clock, eventBus),
       listProjects: new ListProjectsHandler(projectRepo),
       getProject: new GetProjectHandler(projectRepo, taskRepo),
+    },
+    tags: {
+      createTag: new CreateTagHandler(tagRepo, idGenerator, clock, eventBus),
+      updateTag: new UpdateTagHandler(tagRepo, clock, eventBus),
+      deleteTag: new DeleteTagHandler(tagRepo, clock, eventBus),
+      listTags: new ListTagsHandler(tagRepo),
     },
     auth: {
       register: new RegisterUserHandler(

@@ -3,6 +3,7 @@ import { wireHandlers } from "../../src/infrastructure/di/container.js";
 import { buildApp } from "../../src/infrastructure/server/app.js";
 import { InMemoryTaskRepo } from "../../src/adapters/outbound/inmemory/InMemoryTaskRepo.js";
 import { InMemoryProjectRepo } from "../../src/adapters/outbound/inmemory/InMemoryProjectRepo.js";
+import { InMemoryTagRepo } from "../../src/adapters/outbound/inmemory/InMemoryTagRepo.js";
 import { InMemoryUserRepo } from "../../src/adapters/outbound/inmemory/InMemoryUserRepo.js";
 import { InMemoryWorkspaceRepo } from "../../src/adapters/outbound/inmemory/InMemoryWorkspaceRepo.js";
 import { InMemoryEventBus } from "../../src/adapters/outbound/inmemory/InMemoryEventBus.js";
@@ -15,6 +16,7 @@ export interface TestContext {
   app: FastifyInstance;
   taskRepo: InMemoryTaskRepo;
   projectRepo: InMemoryProjectRepo;
+  tagRepo: InMemoryTagRepo;
   userRepo: InMemoryUserRepo;
   workspaceRepo: InMemoryWorkspaceRepo;
   eventBus: InMemoryEventBus;
@@ -26,6 +28,7 @@ export interface TestContext {
 export function createTestApp(now = new Date("2025-06-15T10:00:00Z")): TestContext {
   const taskRepo = new InMemoryTaskRepo();
   const projectRepo = new InMemoryProjectRepo();
+  const tagRepo = new InMemoryTagRepo();
   const userRepo = new InMemoryUserRepo();
   const workspaceRepo = new InMemoryWorkspaceRepo();
   const eventBus = new InMemoryEventBus();
@@ -36,6 +39,7 @@ export function createTestApp(now = new Date("2025-06-15T10:00:00Z")): TestConte
   const handlers = wireHandlers({
     taskRepo,
     projectRepo,
+    tagRepo,
     userRepo,
     workspaceRepo,
     idGenerator: idGen,
@@ -47,7 +51,7 @@ export function createTestApp(now = new Date("2025-06-15T10:00:00Z")): TestConte
 
   const app = buildApp(handlers, tokenService, { logger: false });
 
-  return { app, taskRepo, projectRepo, userRepo, workspaceRepo, eventBus, idGen, clock, tokenService };
+  return { app, taskRepo, projectRepo, tagRepo, userRepo, workspaceRepo, eventBus, idGen, clock, tokenService };
 }
 
 export async function registerAndGetToken(ctx: TestContext, email = "test@example.com", password = "password123"): Promise<string> {

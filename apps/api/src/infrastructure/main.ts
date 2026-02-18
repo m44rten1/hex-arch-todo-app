@@ -3,6 +3,7 @@ import { createPool } from "../adapters/outbound/postgres/pool.js";
 import { runMigrations } from "../adapters/outbound/postgres/migrate.js";
 import { PgTaskRepo } from "../adapters/outbound/postgres/PgTaskRepo.js";
 import { PgProjectRepo } from "../adapters/outbound/postgres/PgProjectRepo.js";
+import { PgTagRepo } from "../adapters/outbound/postgres/PgTagRepo.js";
 import { PgUserRepo } from "../adapters/outbound/postgres/PgUserRepo.js";
 import { PgWorkspaceRepo } from "../adapters/outbound/postgres/PgWorkspaceRepo.js";
 import { UuidIdGenerator } from "../adapters/outbound/UuidIdGenerator.js";
@@ -24,6 +25,7 @@ async function main(): Promise<void> {
   const handlers = wireHandlers({
     taskRepo: new PgTaskRepo(pool),
     projectRepo: new PgProjectRepo(pool),
+    tagRepo: new PgTagRepo(pool),
     userRepo: new PgUserRepo(pool),
     workspaceRepo: new PgWorkspaceRepo(pool),
     idGenerator: new UuidIdGenerator(),
