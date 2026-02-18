@@ -7,6 +7,7 @@ import { InMemoryUserRegistrationStore } from "../adapters/outbound/inmemory/InM
 import { InMemorySearchIndex } from "../adapters/outbound/inmemory/InMemorySearchIndex.js";
 import { InMemoryReminderRepo } from "../adapters/outbound/inmemory/InMemoryReminderRepo.js";
 import { InMemoryRecurrenceRuleRepo } from "../adapters/outbound/inmemory/InMemoryRecurrenceRuleRepo.js";
+import { InMemoryRecurrenceRuleStore } from "../adapters/outbound/inmemory/InMemoryRecurrenceRuleStore.js";
 import { InMemoryEventBus } from "../adapters/outbound/inmemory/InMemoryEventBus.js";
 import { ConsoleNotificationChannel } from "../adapters/outbound/ConsoleNotificationChannel.js";
 import { ReminderScheduler } from "../adapters/inbound/scheduler/ReminderScheduler.js";
@@ -27,6 +28,7 @@ async function main(): Promise<void> {
   const workspaceRepo = new InMemoryWorkspaceRepo();
 
   const taskRepo = new InMemoryTaskRepo();
+  const recurrenceRuleRepo = new InMemoryRecurrenceRuleRepo();
 
   const handlers = wireHandlers({
     taskRepo,
@@ -37,7 +39,8 @@ async function main(): Promise<void> {
     registrationStore: new InMemoryUserRegistrationStore(userRepo, workspaceRepo),
     searchIndex: new InMemorySearchIndex(taskRepo),
     reminderRepo: new InMemoryReminderRepo(),
-    recurrenceRuleRepo: new InMemoryRecurrenceRuleRepo(),
+    recurrenceRuleRepo,
+    recurrenceRuleStore: new InMemoryRecurrenceRuleStore(recurrenceRuleRepo, taskRepo),
     notificationChannel: new ConsoleNotificationChannel(),
     idGenerator: new UuidIdGenerator(),
     clock: new SystemClock(),

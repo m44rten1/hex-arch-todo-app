@@ -5,6 +5,7 @@ import { SetRecurrenceRuleHandler } from "@todo/core/application/usecases/recurr
 import { taskId, userId, workspaceId, recurrenceRuleId } from "@todo/core/domain/shared/index.js";
 import { InMemoryTaskRepo } from "../../src/adapters/outbound/inmemory/InMemoryTaskRepo.js";
 import { InMemoryRecurrenceRuleRepo } from "../../src/adapters/outbound/inmemory/InMemoryRecurrenceRuleRepo.js";
+import { InMemoryRecurrenceRuleStore } from "../../src/adapters/outbound/inmemory/InMemoryRecurrenceRuleStore.js";
 import { InMemoryEventBus } from "../../src/adapters/outbound/inmemory/InMemoryEventBus.js";
 import { StubIdGenerator } from "../../src/adapters/outbound/inmemory/StubIdGenerator.js";
 import { StubClock } from "../../src/adapters/outbound/inmemory/StubClock.js";
@@ -38,7 +39,9 @@ describe("CompleteTaskHandler", () => {
     clock = new StubClock(NOW);
     createHandler = new CreateTaskHandler(taskRepo, idGen, clock, eventBus);
     completeHandler = new CompleteTaskHandler(taskRepo, recurrenceRuleRepo, idGen, clock, eventBus);
-    setRecurrenceHandler = new SetRecurrenceRuleHandler(taskRepo, recurrenceRuleRepo, idGen, clock, eventBus);
+    setRecurrenceHandler = new SetRecurrenceRuleHandler(
+      taskRepo, new InMemoryRecurrenceRuleStore(recurrenceRuleRepo, taskRepo), idGen, clock, eventBus,
+    );
   });
 
   it("completes an active task", async () => {

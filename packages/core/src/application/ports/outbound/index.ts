@@ -8,4 +8,5 @@ export type { IdGenerator } from "./IdGenerator.js";
 export type { EventBus } from "./EventBus.js";
 export type { PasswordHasher } from "./PasswordHasher.js";
 export type { TokenService, TokenPayload } from "./TokenService.js";
+export type { RecurrenceRuleStore } from "./RecurrenceRuleStore.js";
 export type { Clock } from "../../../domain/shared/Clock.js";

@@ -10,6 +10,7 @@ import { PgUserRegistrationStore } from "../adapters/outbound/postgres/PgUserReg
 import { PgSearchIndex } from "../adapters/outbound/postgres/PgSearchIndex.js";
 import { PgReminderRepo } from "../adapters/outbound/postgres/PgReminderRepo.js";
 import { PgRecurrenceRuleRepo } from "../adapters/outbound/postgres/PgRecurrenceRuleRepo.js";
+import { PgRecurrenceRuleStore } from "../adapters/outbound/postgres/PgRecurrenceRuleStore.js";
 import { ConsoleNotificationChannel } from "../adapters/outbound/ConsoleNotificationChannel.js";
 import { UuidIdGenerator } from "../adapters/outbound/UuidIdGenerator.js";
 import { ReminderScheduler } from "../adapters/inbound/scheduler/ReminderScheduler.js";
@@ -38,6 +39,7 @@ async function main(): Promise<void> {
     searchIndex: new PgSearchIndex(db),
     reminderRepo: new PgReminderRepo(db),
     recurrenceRuleRepo: new PgRecurrenceRuleRepo(db),
+    recurrenceRuleStore: new PgRecurrenceRuleStore(db),
     notificationChannel: new ConsoleNotificationChannel(),
     idGenerator: new UuidIdGenerator(),
     clock: new SystemClock(),
