@@ -15,7 +15,7 @@ What exists today: auth (register/login/logout), task CRUD (create/update/comple
 - [x] **Upcoming view** — query tasks due in next 7/14/30 days, grouped by day
 - [x] **Search** — full-text search over title + notes, with filters (status, project, tag, due range)
 - [x] **Reminders** — Reminder entity, scheduling, notification delivery (at least one channel)
-- [ ] **Recurrence** — RecurrenceRule entity, daily/weekly/monthly patterns, auto-create next instance on completion
+- [x] **Recurrence** — RecurrenceRule entity, daily/weekly/monthly patterns, auto-create next instance on completion
 - [ ] **Consistent error contract** — standardize error codes (`VALIDATION_ERROR`, `NOT_FOUND`, `FORBIDDEN`, `CONFLICT`) across all endpoints
 
 ### Frontend (web)
