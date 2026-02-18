@@ -1,4 +1,4 @@
-import { type FormEvent, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ export function AddTaskInput({ onAdd }: AddTaskInputProps) {
   const [submitting, setSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = value.trim();
     if (!trimmed || submitting) return;

@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/useAuth";
 import { ApiRequestError } from "@/lib/api-client";
@@ -21,7 +21,7 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
