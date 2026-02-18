@@ -29,9 +29,15 @@ export interface ConflictError {
   readonly message: string;
 }
 
+export interface ForbiddenError {
+  readonly type: "ForbiddenError";
+  readonly message: string;
+}
+
 export type DomainError =
   | ValidationError
   | NotFoundError
   | InvalidStateTransitionError
   | AuthenticationError
-  | ConflictError;
+  | ConflictError
+  | ForbiddenError;

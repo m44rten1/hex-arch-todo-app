@@ -25,6 +25,7 @@ export type {
   InvalidStateTransitionError,
   AuthenticationError,
   ConflictError,
+  ForbiddenError,
   DomainError,
 } from "./Errors.js";
 export type { Clock } from "./Clock.js";
