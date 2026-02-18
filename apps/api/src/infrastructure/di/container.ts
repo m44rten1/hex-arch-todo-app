@@ -94,7 +94,7 @@ export function wireHandlers(deps: Dependencies): AppHandlers {
     tasks: {
       createTask: new CreateTaskHandler(taskRepo, idGenerator, clock, eventBus),
       updateTask: new UpdateTaskHandler(taskRepo, clock, eventBus),
-      completeTask: new CompleteTaskHandler(taskRepo, clock, eventBus),
+      completeTask: new CompleteTaskHandler(taskRepo, recurrenceRuleRepo, idGenerator, clock, eventBus),
       uncompleteTask: new UncompleteTaskHandler(taskRepo, clock, eventBus),
       deleteTask: new DeleteTaskHandler(taskRepo, clock, eventBus),
       cancelTask: new CancelTaskHandler(taskRepo, clock, eventBus),
