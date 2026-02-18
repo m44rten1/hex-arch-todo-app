@@ -8,7 +8,6 @@ import type { DeleteTaskHandler } from "@todo/core/application/usecases/tasks/De
 import type { GetInboxHandler } from "@todo/core/application/usecases/queries/GetInboxHandler.js";
 import type { GetTodayViewHandler } from "@todo/core/application/usecases/queries/GetTodayViewHandler.js";
 import { createTaskSchema, updateTaskSchema } from "../schemas/taskSchemas.js";
-import { extractContext } from "../middleware/authContext.js";
 import { domainErrorToHttp } from "../middleware/errorMapper.js";
 
 export interface TaskHandlers {
@@ -26,7 +25,7 @@ export function registerTaskRoutes(
   handlers: TaskHandlers,
 ): void {
   app.post<{ Body: unknown }>("/tasks", async (request, reply) => {
-    const ctx = extractContext(request);
+    const ctx = request.ctx;
     const parsed = createTaskSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.status(400).send({
@@ -122,14 +121,12 @@ export function registerTaskRoutes(
   });
 
   app.get("/inbox", async (request, reply) => {
-    const ctx = extractContext(request);
-    const tasks = await handlers.getInbox.execute(ctx);
+    const tasks = await handlers.getInbox.execute(request.ctx);
     return reply.send(tasks);
   });
 
   app.get("/today", async (request, reply) => {
-    const ctx = extractContext(request);
-    const view = await handlers.getTodayView.execute(ctx);
+    const view = await handlers.getTodayView.execute(request.ctx);
     return reply.send(view);
   });
 }

@@ -1,13 +1,19 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { projectId, taskId } from "@todo/core/domain/shared/index.js";
-import { createTestApp, AUTH_HEADERS, type TestContext } from "./helpers.js";
+import { createTestApp, registerAndGetToken, type TestContext } from "./helpers.js";
 
 describe("Project routes", () => {
   let ctx: TestContext;
+  let token: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     ctx = createTestApp();
+    token = await registerAndGetToken(ctx);
   });
+
+  function authHeaders() {
+    return { authorization: `Bearer ${token}`, "content-type": "application/json" };
+  }
 
   describe("POST /projects", () => {
     it("creates a project and returns 201", async () => {
@@ -16,7 +22,7 @@ describe("Project routes", () => {
       const res = await ctx.app.inject({
         method: "POST",
         url: "/projects",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        headers: authHeaders(),
         payload: { name: "Work" },
       });
 
@@ -30,7 +36,7 @@ describe("Project routes", () => {
       const res = await ctx.app.inject({
         method: "POST",
         url: "/projects",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        headers: authHeaders(),
         payload: { name: "" },
       });
 
@@ -44,14 +50,14 @@ describe("Project routes", () => {
       await ctx.app.inject({
         method: "POST",
         url: "/projects",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        headers: authHeaders(),
         payload: { name: "Work" },
       });
 
       const res = await ctx.app.inject({
         method: "GET",
         url: "/projects",
-        headers: AUTH_HEADERS,
+        headers: { authorization: `Bearer ${token}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -67,7 +73,7 @@ describe("Project routes", () => {
       await ctx.app.inject({
         method: "POST",
         url: "/projects",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        headers: authHeaders(),
         payload: { name: "Work" },
       });
 
@@ -75,14 +81,14 @@ describe("Project routes", () => {
       await ctx.app.inject({
         method: "POST",
         url: "/tasks",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        headers: authHeaders(),
         payload: { title: "Project task", projectId: "proj-1" },
       });
 
       const res = await ctx.app.inject({
         method: "GET",
         url: "/projects/proj-1",
-        headers: AUTH_HEADERS,
+        headers: { authorization: `Bearer ${token}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -96,7 +102,7 @@ describe("Project routes", () => {
       const res = await ctx.app.inject({
         method: "GET",
         url: "/projects/nonexistent",
-        headers: AUTH_HEADERS,
+        headers: { authorization: `Bearer ${token}` },
       });
 
       expect(res.statusCode).toBe(404);

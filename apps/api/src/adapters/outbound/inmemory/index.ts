@@ -1,5 +1,9 @@
 export { InMemoryTaskRepo } from "./InMemoryTaskRepo.js";
 export { InMemoryProjectRepo } from "./InMemoryProjectRepo.js";
+export { InMemoryUserRepo } from "./InMemoryUserRepo.js";
+export { InMemoryWorkspaceRepo } from "./InMemoryWorkspaceRepo.js";
 export { InMemoryEventBus } from "./InMemoryEventBus.js";
 export { StubIdGenerator } from "./StubIdGenerator.js";
 export { StubClock } from "./StubClock.js";
+export { StubPasswordHasher } from "./StubPasswordHasher.js";
+export { StubTokenService } from "./StubTokenService.js";

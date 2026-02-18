@@ -1,13 +1,19 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { taskId } from "@todo/core/domain/shared/index.js";
-import { createTestApp, AUTH_HEADERS, type TestContext } from "./helpers.js";
+import { createTestApp, registerAndGetToken, type TestContext } from "./helpers.js";
 
 describe("Task routes", () => {
   let ctx: TestContext;
+  let token: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     ctx = createTestApp();
+    token = await registerAndGetToken(ctx);
   });
+
+  function authHeaders() {
+    return { authorization: `Bearer ${token}`, "content-type": "application/json" };
+  }
 
   describe("POST /tasks", () => {
     it("creates a task and returns 201", async () => {
@@ -16,7 +22,7 @@ describe("Task routes", () => {
       const res = await ctx.app.inject({
         method: "POST",
         url: "/tasks",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        headers: authHeaders(),
         payload: { title: "Buy milk" },
       });
 
@@ -31,7 +37,7 @@ describe("Task routes", () => {
       const res = await ctx.app.inject({
         method: "POST",
         url: "/tasks",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        headers: authHeaders(),
         payload: {},
       });
 
@@ -42,11 +48,22 @@ describe("Task routes", () => {
       const res = await ctx.app.inject({
         method: "POST",
         url: "/tasks",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        headers: authHeaders(),
         payload: { title: "" },
       });
 
       expect(res.statusCode).toBe(400);
+    });
+
+    it("returns 401 without token", async () => {
+      const res = await ctx.app.inject({
+        method: "POST",
+        url: "/tasks",
+        headers: { "content-type": "application/json" },
+        payload: { title: "No auth" },
+      });
+
+      expect(res.statusCode).toBe(401);
     });
   });
 
@@ -56,14 +73,14 @@ describe("Task routes", () => {
       await ctx.app.inject({
         method: "POST",
         url: "/tasks",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        headers: authHeaders(),
         payload: { title: "Original" },
       });
 
       const res = await ctx.app.inject({
         method: "PATCH",
         url: "/tasks/task-1",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        headers: authHeaders(),
         payload: { title: "Updated" },
       });
 
@@ -75,7 +92,7 @@ describe("Task routes", () => {
       const res = await ctx.app.inject({
         method: "PATCH",
         url: "/tasks/nonexistent",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        headers: authHeaders(),
         payload: { title: "x" },
       });
 
@@ -89,14 +106,14 @@ describe("Task routes", () => {
       await ctx.app.inject({
         method: "POST",
         url: "/tasks",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        headers: authHeaders(),
         payload: { title: "Task" },
       });
 
       const res = await ctx.app.inject({
         method: "POST",
         url: "/tasks/task-1/complete",
-        headers: AUTH_HEADERS,
+        headers: { authorization: `Bearer ${token}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -105,22 +122,13 @@ describe("Task routes", () => {
 
     it("returns 409 for already completed task", async () => {
       ctx.idGen.setNextTaskId(taskId("task-1"));
-      await ctx.app.inject({
-        method: "POST",
-        url: "/tasks",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
-        payload: { title: "Task" },
-      });
-      await ctx.app.inject({
-        method: "POST",
-        url: "/tasks/task-1/complete",
-        headers: AUTH_HEADERS,
-      });
+      await ctx.app.inject({ method: "POST", url: "/tasks", headers: authHeaders(), payload: { title: "Task" } });
+      await ctx.app.inject({ method: "POST", url: "/tasks/task-1/complete", headers: { authorization: `Bearer ${token}` } });
 
       const res = await ctx.app.inject({
         method: "POST",
         url: "/tasks/task-1/complete",
-        headers: AUTH_HEADERS,
+        headers: { authorization: `Bearer ${token}` },
       });
 
       expect(res.statusCode).toBe(409);
@@ -130,22 +138,13 @@ describe("Task routes", () => {
   describe("POST /tasks/:id/uncomplete", () => {
     it("uncompletes a completed task", async () => {
       ctx.idGen.setNextTaskId(taskId("task-1"));
-      await ctx.app.inject({
-        method: "POST",
-        url: "/tasks",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
-        payload: { title: "Task" },
-      });
-      await ctx.app.inject({
-        method: "POST",
-        url: "/tasks/task-1/complete",
-        headers: AUTH_HEADERS,
-      });
+      await ctx.app.inject({ method: "POST", url: "/tasks", headers: authHeaders(), payload: { title: "Task" } });
+      await ctx.app.inject({ method: "POST", url: "/tasks/task-1/complete", headers: { authorization: `Bearer ${token}` } });
 
       const res = await ctx.app.inject({
         method: "POST",
         url: "/tasks/task-1/uncomplete",
-        headers: AUTH_HEADERS,
+        headers: { authorization: `Bearer ${token}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -156,17 +155,12 @@ describe("Task routes", () => {
   describe("DELETE /tasks/:id", () => {
     it("deletes a task and returns 204", async () => {
       ctx.idGen.setNextTaskId(taskId("task-1"));
-      await ctx.app.inject({
-        method: "POST",
-        url: "/tasks",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
-        payload: { title: "Task" },
-      });
+      await ctx.app.inject({ method: "POST", url: "/tasks", headers: authHeaders(), payload: { title: "Task" } });
 
       const res = await ctx.app.inject({
         method: "DELETE",
         url: "/tasks/task-1",
-        headers: AUTH_HEADERS,
+        headers: { authorization: `Bearer ${token}` },
       });
 
       expect(res.statusCode).toBe(204);
@@ -176,17 +170,12 @@ describe("Task routes", () => {
   describe("GET /inbox", () => {
     it("returns tasks without a project", async () => {
       ctx.idGen.setNextTaskId(taskId("task-1"));
-      await ctx.app.inject({
-        method: "POST",
-        url: "/tasks",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
-        payload: { title: "Inbox task" },
-      });
+      await ctx.app.inject({ method: "POST", url: "/tasks", headers: authHeaders(), payload: { title: "Inbox task" } });
 
       const res = await ctx.app.inject({
         method: "GET",
         url: "/inbox",
-        headers: AUTH_HEADERS,
+        headers: { authorization: `Bearer ${token}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -200,24 +189,20 @@ describe("Task routes", () => {
     it("returns tasks due today and overdue", async () => {
       ctx.idGen.setNextTaskId(taskId("t1"));
       await ctx.app.inject({
-        method: "POST",
-        url: "/tasks",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        method: "POST", url: "/tasks", headers: authHeaders(),
         payload: { title: "Due today", dueAt: "2025-06-15T17:00:00Z" },
       });
 
       ctx.idGen.setNextTaskId(taskId("t2"));
       await ctx.app.inject({
-        method: "POST",
-        url: "/tasks",
-        headers: { ...AUTH_HEADERS, "content-type": "application/json" },
+        method: "POST", url: "/tasks", headers: authHeaders(),
         payload: { title: "Overdue", dueAt: "2025-06-14T09:00:00Z" },
       });
 
       const res = await ctx.app.inject({
         method: "GET",
         url: "/today",
-        headers: AUTH_HEADERS,
+        headers: { authorization: `Bearer ${token}` },
       });
 
       expect(res.statusCode).toBe(200);

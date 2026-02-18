@@ -26,5 +26,15 @@ export function domainErrorToHttp(error: DomainError): HttpError {
         statusCode: 409,
         body: { code: "CONFLICT", message: error.message },
       };
+    case "AuthenticationError":
+      return {
+        statusCode: 401,
+        body: { code: "UNAUTHORIZED", message: error.message },
+      };
+    case "ConflictError":
+      return {
+        statusCode: 409,
+        body: { code: "CONFLICT", message: error.message },
+      };
   }
 }

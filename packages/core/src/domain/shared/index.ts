@@ -17,6 +17,8 @@ export type {
   ValidationError,
   NotFoundError,
   InvalidStateTransitionError,
+  AuthenticationError,
+  ConflictError,
   DomainError,
 } from "./Errors.js";
 export type { Clock } from "./Clock.js";

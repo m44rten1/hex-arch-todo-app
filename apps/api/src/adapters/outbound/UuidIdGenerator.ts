@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { taskId, projectId } from "@todo/core/domain/shared/index.js";
-import type { TaskId, ProjectId } from "@todo/core/domain/shared/index.js";
+import { taskId, projectId, userId, workspaceId } from "@todo/core/domain/shared/index.js";
+import type { TaskId, ProjectId, UserId, WorkspaceId } from "@todo/core/domain/shared/index.js";
 import type { IdGenerator } from "@todo/core/application/ports/outbound/IdGenerator.js";
 
 export class UuidIdGenerator implements IdGenerator {
@@ -10,5 +10,13 @@ export class UuidIdGenerator implements IdGenerator {
 
   projectId(): ProjectId {
     return projectId(randomUUID());
+  }
+
+  userId(): UserId {
+    return userId(randomUUID());
+  }
+
+  workspaceId(): WorkspaceId {
+    return workspaceId(randomUUID());
   }
 }

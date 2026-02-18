@@ -18,7 +18,20 @@ export interface InvalidStateTransitionError {
   readonly message: string;
 }
 
+export interface AuthenticationError {
+  readonly type: "AuthenticationError";
+  readonly message: string;
+}
+
+export interface ConflictError {
+  readonly type: "ConflictError";
+  readonly entity: string;
+  readonly message: string;
+}
+
 export type DomainError =
   | ValidationError
   | NotFoundError
-  | InvalidStateTransitionError;
+  | InvalidStateTransitionError
+  | AuthenticationError
+  | ConflictError;

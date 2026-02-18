@@ -4,7 +4,6 @@ import type { CreateProjectHandler } from "@todo/core/application/usecases/proje
 import type { ListProjectsHandler } from "@todo/core/application/usecases/queries/ListProjectsHandler.js";
 import type { GetProjectHandler } from "@todo/core/application/usecases/queries/GetProjectHandler.js";
 import { createProjectSchema } from "../schemas/projectSchemas.js";
-import { extractContext } from "../middleware/authContext.js";
 import { domainErrorToHttp } from "../middleware/errorMapper.js";
 
 export interface ProjectHandlers {
@@ -18,7 +17,7 @@ export function registerProjectRoutes(
   handlers: ProjectHandlers,
 ): void {
   app.post<{ Body: unknown }>("/projects", async (request, reply) => {
-    const ctx = extractContext(request);
+    const ctx = request.ctx;
     const parsed = createProjectSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.status(400).send({
@@ -41,8 +40,7 @@ export function registerProjectRoutes(
   });
 
   app.get("/projects", async (request, reply) => {
-    const ctx = extractContext(request);
-    const projects = await handlers.listProjects.execute(ctx);
+    const projects = await handlers.listProjects.execute(request.ctx);
     return reply.send(projects);
   });
 
