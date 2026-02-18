@@ -30,6 +30,9 @@ import { DismissReminderHandler } from "@todo/core/application/usecases/reminder
 import { DeleteReminderHandler } from "@todo/core/application/usecases/reminders/DeleteReminderHandler.js";
 import { GetTaskRemindersHandler } from "@todo/core/application/usecases/reminders/GetTaskRemindersHandler.js";
 import { ProcessDueRemindersHandler } from "@todo/core/application/usecases/reminders/ProcessDueRemindersHandler.js";
+import { SetRecurrenceRuleHandler } from "@todo/core/application/usecases/recurrence/SetRecurrenceRuleHandler.js";
+import { RemoveRecurrenceRuleHandler } from "@todo/core/application/usecases/recurrence/RemoveRecurrenceRuleHandler.js";
+import { GetTaskRecurrenceHandler } from "@todo/core/application/usecases/recurrence/GetTaskRecurrenceHandler.js";
 import type { TaskRepo } from "@todo/core/application/ports/outbound/TaskRepo.js";
 import type { ProjectRepo } from "@todo/core/application/ports/outbound/ProjectRepo.js";
 import type { UserRepo } from "@todo/core/application/ports/outbound/UserRepo.js";
@@ -37,6 +40,7 @@ import type { WorkspaceRepo } from "@todo/core/application/ports/outbound/Worksp
 import type { UserRegistrationStore } from "@todo/core/application/ports/outbound/UserRegistrationStore.js";
 import type { SearchIndex } from "@todo/core/application/ports/outbound/SearchIndex.js";
 import type { ReminderRepo } from "@todo/core/application/ports/outbound/ReminderRepo.js";
+import type { RecurrenceRuleRepo } from "@todo/core/application/ports/outbound/RecurrenceRuleRepo.js";
 import type { NotificationChannel } from "@todo/core/application/ports/outbound/NotificationChannel.js";
 import type { IdGenerator } from "@todo/core/application/ports/outbound/IdGenerator.js";
 import type { Clock } from "@todo/core/domain/shared/Clock.js";
@@ -47,6 +51,7 @@ import type { TaskHandlers } from "../../adapters/inbound/http/routes/taskRoutes
 import type { ProjectHandlers } from "../../adapters/inbound/http/routes/projectRoutes.js";
 import type { TagHandlers } from "../../adapters/inbound/http/routes/tagRoutes.js";
 import type { ReminderHandlers } from "../../adapters/inbound/http/routes/reminderRoutes.js";
+import type { RecurrenceHandlers } from "../../adapters/inbound/http/routes/recurrenceRoutes.js";
 import type { AuthHandlers } from "../../adapters/inbound/http/routes/authRoutes.js";
 import type { TagRepo } from "@todo/core/application/ports/outbound/TagRepo.js";
 
@@ -59,6 +64,7 @@ export interface Dependencies {
   readonly registrationStore: UserRegistrationStore;
   readonly searchIndex: SearchIndex;
   readonly reminderRepo: ReminderRepo;
+  readonly recurrenceRuleRepo: RecurrenceRuleRepo;
   readonly notificationChannel: NotificationChannel;
   readonly idGenerator: IdGenerator;
   readonly clock: Clock;
@@ -72,6 +78,7 @@ export interface AppHandlers {
   readonly projects: ProjectHandlers;
   readonly tags: TagHandlers;
   readonly reminders: ReminderHandlers;
+  readonly recurrence: RecurrenceHandlers;
   readonly auth: AuthHandlers;
   readonly processDueReminders: ProcessDueRemindersHandler;
 }
@@ -79,7 +86,7 @@ export interface AppHandlers {
 export function wireHandlers(deps: Dependencies): AppHandlers {
   const {
     taskRepo, projectRepo, tagRepo, userRepo, workspaceRepo, registrationStore,
-    searchIndex, reminderRepo, notificationChannel,
+    searchIndex, reminderRepo, recurrenceRuleRepo, notificationChannel,
     idGenerator, clock, eventBus, passwordHasher, tokenService,
   } = deps;
 
@@ -119,6 +126,11 @@ export function wireHandlers(deps: Dependencies): AppHandlers {
       dismissReminder: new DismissReminderHandler(reminderRepo, clock, eventBus),
       deleteReminder: new DeleteReminderHandler(reminderRepo),
       getTaskReminders: new GetTaskRemindersHandler(reminderRepo),
+    },
+    recurrence: {
+      setRecurrenceRule: new SetRecurrenceRuleHandler(taskRepo, recurrenceRuleRepo, idGenerator, clock, eventBus),
+      removeRecurrenceRule: new RemoveRecurrenceRuleHandler(taskRepo, recurrenceRuleRepo, clock, eventBus),
+      getTaskRecurrence: new GetTaskRecurrenceHandler(taskRepo, recurrenceRuleRepo),
     },
     auth: {
       register: new RegisterUserHandler(

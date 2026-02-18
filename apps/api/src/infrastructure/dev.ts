@@ -6,6 +6,7 @@ import { InMemoryWorkspaceRepo } from "../adapters/outbound/inmemory/InMemoryWor
 import { InMemoryUserRegistrationStore } from "../adapters/outbound/inmemory/InMemoryUserRegistrationStore.js";
 import { InMemorySearchIndex } from "../adapters/outbound/inmemory/InMemorySearchIndex.js";
 import { InMemoryReminderRepo } from "../adapters/outbound/inmemory/InMemoryReminderRepo.js";
+import { InMemoryRecurrenceRuleRepo } from "../adapters/outbound/inmemory/InMemoryRecurrenceRuleRepo.js";
 import { InMemoryEventBus } from "../adapters/outbound/inmemory/InMemoryEventBus.js";
 import { ConsoleNotificationChannel } from "../adapters/outbound/ConsoleNotificationChannel.js";
 import { ReminderScheduler } from "../adapters/inbound/scheduler/ReminderScheduler.js";
@@ -36,6 +37,7 @@ async function main(): Promise<void> {
     registrationStore: new InMemoryUserRegistrationStore(userRepo, workspaceRepo),
     searchIndex: new InMemorySearchIndex(taskRepo),
     reminderRepo: new InMemoryReminderRepo(),
+    recurrenceRuleRepo: new InMemoryRecurrenceRuleRepo(),
     notificationChannel: new ConsoleNotificationChannel(),
     idGenerator: new UuidIdGenerator(),
     clock: new SystemClock(),

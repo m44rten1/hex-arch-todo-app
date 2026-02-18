@@ -9,6 +9,7 @@ import { InMemoryWorkspaceRepo } from "../../src/adapters/outbound/inmemory/InMe
 import { InMemoryUserRegistrationStore } from "../../src/adapters/outbound/inmemory/InMemoryUserRegistrationStore.js";
 import { InMemorySearchIndex } from "../../src/adapters/outbound/inmemory/InMemorySearchIndex.js";
 import { InMemoryReminderRepo } from "../../src/adapters/outbound/inmemory/InMemoryReminderRepo.js";
+import { InMemoryRecurrenceRuleRepo } from "../../src/adapters/outbound/inmemory/InMemoryRecurrenceRuleRepo.js";
 import { InMemoryEventBus } from "../../src/adapters/outbound/inmemory/InMemoryEventBus.js";
 import { ConsoleNotificationChannel } from "../../src/adapters/outbound/ConsoleNotificationChannel.js";
 import { StubIdGenerator } from "../../src/adapters/outbound/inmemory/StubIdGenerator.js";
@@ -49,6 +50,7 @@ export function createTestApp(now = new Date("2025-06-15T10:00:00Z")): TestConte
     registrationStore: new InMemoryUserRegistrationStore(userRepo, workspaceRepo),
     searchIndex: new InMemorySearchIndex(taskRepo),
     reminderRepo: new InMemoryReminderRepo(),
+    recurrenceRuleRepo: new InMemoryRecurrenceRuleRepo(),
     notificationChannel: new ConsoleNotificationChannel(),
     idGenerator: idGen,
     clock,
