@@ -6,6 +6,7 @@ export type WorkspaceId = Brand<string, "WorkspaceId">;
 export type UserId = Brand<string, "UserId">;
 export type TagId = Brand<string, "TagId">;
 export type ReminderId = Brand<string, "ReminderId">;
+export type RecurrenceRuleId = Brand<string, "RecurrenceRuleId">;
 
 export function taskId(raw: string): TaskId {
   return raw as TaskId;
@@ -29,4 +30,8 @@ export function tagId(raw: string): TagId {
 
 export function reminderId(raw: string): ReminderId {
   return raw as ReminderId;
+}
+
+export function recurrenceRuleId(raw: string): RecurrenceRuleId {
+  return raw as RecurrenceRuleId;
 }

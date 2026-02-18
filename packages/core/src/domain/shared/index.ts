@@ -6,6 +6,7 @@ export type {
   UserId,
   TagId,
   ReminderId,
+  RecurrenceRuleId,
 } from "./Id.js";
 export {
   taskId,
@@ -14,6 +15,7 @@ export {
   userId,
   tagId,
   reminderId,
+  recurrenceRuleId,
 } from "./Id.js";
 export type { Result } from "./Result.js";
 export { ok, err, mapResult } from "./Result.js";
