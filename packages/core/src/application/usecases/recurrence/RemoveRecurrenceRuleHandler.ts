@@ -1,5 +1,6 @@
 import type { Result, NotFoundError } from "../../../domain/shared/index.js";
 import { err } from "../../../domain/shared/index.js";
+import { unlinkRecurrenceRule } from "../../../domain/task/TaskRules.js";
 import type { RemoveRecurrenceRuleCommand } from "../../ports/inbound/commands/RemoveRecurrenceRule.js";
 import type { RequestContext } from "../../RequestContext.js";
 import type { TaskRepo } from "../../ports/outbound/TaskRepo.js";
@@ -43,7 +44,7 @@ export class RemoveRecurrenceRuleHandler {
 
     const now = this.clock.now();
     const ruleId = task.recurrenceRuleId;
-    const updatedTask = { ...task, recurrenceRuleId: null, updatedAt: now };
+    const updatedTask = unlinkRecurrenceRule(task, now);
 
     await this.recurrenceRuleStore.removeRule(ruleId, updatedTask);
 
