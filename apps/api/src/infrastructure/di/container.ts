@@ -4,6 +4,7 @@ import { CompleteTaskHandler } from "@todo/core/application/usecases/tasks/Compl
 import { UncompleteTaskHandler } from "@todo/core/application/usecases/tasks/UncompleteTaskHandler.js";
 import { DeleteTaskHandler } from "@todo/core/application/usecases/tasks/DeleteTaskHandler.js";
 import { CancelTaskHandler } from "@todo/core/application/usecases/tasks/CancelTaskHandler.js";
+import { SearchTasksHandler } from "@todo/core/application/usecases/search/SearchTasksHandler.js";
 import { CreateProjectHandler } from "@todo/core/application/usecases/projects/CreateProjectHandler.js";
 import { UpdateProjectHandler } from "@todo/core/application/usecases/projects/UpdateProjectHandler.js";
 import { ArchiveProjectHandler } from "@todo/core/application/usecases/projects/ArchiveProjectHandler.js";
@@ -28,6 +29,7 @@ import type { ProjectRepo } from "@todo/core/application/ports/outbound/ProjectR
 import type { UserRepo } from "@todo/core/application/ports/outbound/UserRepo.js";
 import type { WorkspaceRepo } from "@todo/core/application/ports/outbound/WorkspaceRepo.js";
 import type { UserRegistrationStore } from "@todo/core/application/ports/outbound/UserRegistrationStore.js";
+import type { SearchIndex } from "@todo/core/application/ports/outbound/SearchIndex.js";
 import type { IdGenerator } from "@todo/core/application/ports/outbound/IdGenerator.js";
 import type { Clock } from "@todo/core/domain/shared/Clock.js";
 import type { EventBus } from "@todo/core/application/ports/outbound/EventBus.js";
@@ -46,6 +48,7 @@ export interface Dependencies {
   readonly userRepo: UserRepo;
   readonly workspaceRepo: WorkspaceRepo;
   readonly registrationStore: UserRegistrationStore;
+  readonly searchIndex: SearchIndex;
   readonly idGenerator: IdGenerator;
   readonly clock: Clock;
   readonly eventBus: EventBus;
@@ -63,7 +66,7 @@ export interface AppHandlers {
 export function wireHandlers(deps: Dependencies): AppHandlers {
   const {
     taskRepo, projectRepo, tagRepo, userRepo, workspaceRepo, registrationStore,
-    idGenerator, clock, eventBus, passwordHasher, tokenService,
+    searchIndex, idGenerator, clock, eventBus, passwordHasher, tokenService,
   } = deps;
 
   return {
@@ -78,6 +81,7 @@ export function wireHandlers(deps: Dependencies): AppHandlers {
       getCompletedInbox: new GetCompletedInboxHandler(taskRepo),
       getUpcomingView: new GetUpcomingViewHandler(taskRepo, clock),
       getTodayView: new GetTodayViewHandler(taskRepo, clock),
+      searchTasks: new SearchTasksHandler(searchIndex),
     },
     projects: {
       createProject: new CreateProjectHandler(projectRepo, idGenerator, clock, eventBus),

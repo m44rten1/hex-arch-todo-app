@@ -60,6 +60,12 @@ export class InMemoryTaskRepo implements TaskRepo {
     );
   }
 
+  async findAll(workspaceId: WorkspaceId): Promise<Task[]> {
+    return [...this.tasks.values()].filter(
+      t => t.workspaceId === workspaceId && t.deletedAt === null,
+    );
+  }
+
   clear(): void {
     this.tasks.clear();
   }

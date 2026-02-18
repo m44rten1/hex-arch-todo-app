@@ -159,6 +159,12 @@ export function isDueOn(task: Task, date: Date): boolean {
   );
 }
 
+export const TASK_STATUSES = ["active", "completed", "canceled"] as const satisfies readonly TaskStatus[];
+
+export function isTaskStatus(value: string): value is TaskStatus {
+  return (TASK_STATUSES as readonly string[]).includes(value);
+}
+
 const ALLOWED_TRANSITIONS: Record<TaskStatus, readonly TaskStatus[]> = {
   active: ["completed", "canceled"],
   completed: ["active"],

@@ -7,6 +7,7 @@ import { PgTagRepo } from "../adapters/outbound/postgres/PgTagRepo.js";
 import { PgUserRepo } from "../adapters/outbound/postgres/PgUserRepo.js";
 import { PgWorkspaceRepo } from "../adapters/outbound/postgres/PgWorkspaceRepo.js";
 import { PgUserRegistrationStore } from "../adapters/outbound/postgres/PgUserRegistrationStore.js";
+import { PgSearchIndex } from "../adapters/outbound/postgres/PgSearchIndex.js";
 import { UuidIdGenerator } from "../adapters/outbound/UuidIdGenerator.js";
 import { SystemClock } from "../adapters/outbound/SystemClock.js";
 import { InMemoryEventBus } from "../adapters/outbound/inmemory/InMemoryEventBus.js";
@@ -30,6 +31,7 @@ async function main(): Promise<void> {
     userRepo: new PgUserRepo(db),
     workspaceRepo: new PgWorkspaceRepo(db),
     registrationStore: new PgUserRegistrationStore(db),
+    searchIndex: new PgSearchIndex(db),
     idGenerator: new UuidIdGenerator(),
     clock: new SystemClock(),
     eventBus: new InMemoryEventBus(),

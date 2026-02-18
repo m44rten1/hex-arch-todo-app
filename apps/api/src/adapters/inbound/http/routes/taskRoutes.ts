@@ -11,7 +11,8 @@ import type { GetCompletedInboxHandler } from "@todo/core/application/usecases/q
 import type { GetTodayViewHandler } from "@todo/core/application/usecases/queries/GetTodayViewHandler.js";
 import type { GetUpcomingViewHandler, UpcomingDays } from "@todo/core/application/usecases/queries/GetUpcomingViewHandler.js";
 import { isAllowedDays } from "@todo/core/application/usecases/queries/GetUpcomingViewHandler.js";
-import { createTaskSchema, updateTaskSchema } from "../schemas/taskSchemas.js";
+import type { SearchTasksHandler } from "@todo/core/application/usecases/search/SearchTasksHandler.js";
+import { createTaskSchema, updateTaskSchema, searchTasksSchema } from "../schemas/taskSchemas.js";
 import { domainErrorToHttp, zodValidationError } from "../middleware/errorMapper.js";
 
 export interface TaskHandlers {
@@ -25,6 +26,7 @@ export interface TaskHandlers {
   getCompletedInbox: GetCompletedInboxHandler;
   getTodayView: GetTodayViewHandler;
   getUpcomingView: GetUpcomingViewHandler;
+  searchTasks: SearchTasksHandler;
 }
 
 export function registerTaskRoutes(
@@ -158,5 +160,33 @@ export function registerTaskRoutes(
     const days: UpcomingDays = isAllowedDays(rawDays) ? rawDays : 7;
     const view = await handlers.getUpcomingView.execute(request.ctx, days);
     return reply.send(view);
+  });
+
+  app.get<{ Querystring: Record<string, string> }>("/search", async (request, reply) => {
+    const parsed = searchTasksSchema.safeParse(request.query);
+    if (!parsed.success) {
+      const err = zodValidationError(parsed.error);
+      return reply.status(err.statusCode).send(err.body);
+    }
+
+    const result = await handlers.searchTasks.execute(
+      {
+        type: "SearchTasks",
+        q: parsed.data.q,
+        projectId: parsed.data.projectId,
+        tagIds: parsed.data.tagIds,
+        status: parsed.data.status,
+        dueBefore: parsed.data.dueBefore,
+        dueAfter: parsed.data.dueAfter,
+      },
+      request.ctx,
+    );
+
+    if (!result.ok) {
+      const httpErr = domainErrorToHttp(result.error);
+      return reply.status(httpErr.statusCode).send(httpErr.body);
+    }
+
+    return reply.send(result.value);
   });
 }
