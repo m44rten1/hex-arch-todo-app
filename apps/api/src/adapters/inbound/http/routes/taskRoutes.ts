@@ -9,6 +9,8 @@ import type { CancelTaskHandler } from "@todo/core/application/usecases/tasks/Ca
 import type { GetInboxHandler } from "@todo/core/application/usecases/queries/GetInboxHandler.js";
 import type { GetCompletedInboxHandler } from "@todo/core/application/usecases/queries/GetCompletedInboxHandler.js";
 import type { GetTodayViewHandler } from "@todo/core/application/usecases/queries/GetTodayViewHandler.js";
+import type { GetUpcomingViewHandler, UpcomingDays } from "@todo/core/application/usecases/queries/GetUpcomingViewHandler.js";
+import { isAllowedDays } from "@todo/core/application/usecases/queries/GetUpcomingViewHandler.js";
 import { createTaskSchema, updateTaskSchema } from "../schemas/taskSchemas.js";
 import { domainErrorToHttp, zodValidationError } from "../middleware/errorMapper.js";
 
@@ -22,6 +24,7 @@ export interface TaskHandlers {
   getInbox: GetInboxHandler;
   getCompletedInbox: GetCompletedInboxHandler;
   getTodayView: GetTodayViewHandler;
+  getUpcomingView: GetUpcomingViewHandler;
 }
 
 export function registerTaskRoutes(
@@ -147,6 +150,13 @@ export function registerTaskRoutes(
 
   app.get("/today", async (request, reply) => {
     const view = await handlers.getTodayView.execute(request.ctx);
+    return reply.send(view);
+  });
+
+  app.get<{ Querystring: { days?: string } }>("/upcoming", async (request, reply) => {
+    const rawDays = request.query.days !== undefined ? parseInt(request.query.days, 10) : 7;
+    const days: UpcomingDays = isAllowedDays(rawDays) ? rawDays : 7;
+    const view = await handlers.getUpcomingView.execute(request.ctx, days);
     return reply.send(view);
   });
 }
