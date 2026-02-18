@@ -2,6 +2,7 @@ import type { Result, NotFoundError } from "../../../domain/shared/index.js";
 import { err } from "../../../domain/shared/index.js";
 import { createRecurrenceRule } from "../../../domain/recurrence/RecurrenceRules.js";
 import type { RecurrenceValidationError } from "../../../domain/recurrence/RecurrenceRules.js";
+import { linkRecurrenceRule } from "../../../domain/task/TaskRules.js";
 import type { RecurrenceRuleDTO } from "../../dto/RecurrenceRuleDTO.js";
 import { toRecurrenceRuleDTO } from "../../dto/RecurrenceRuleDTO.js";
 import type { SetRecurrenceRuleCommand } from "../../ports/inbound/commands/SetRecurrenceRule.js";
@@ -59,7 +60,7 @@ export class SetRecurrenceRuleHandler {
 
     if (!result.ok) return result;
 
-    const updatedTask = { ...task, recurrenceRuleId: ruleId, updatedAt: now };
+    const updatedTask = linkRecurrenceRule(task, ruleId, now);
     await this.recurrenceRuleStore.replaceRule(task.recurrenceRuleId, result.value, updatedTask);
 
     const event: RecurrenceRuleSet = {
