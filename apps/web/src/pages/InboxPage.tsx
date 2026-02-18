@@ -96,17 +96,11 @@ export function InboxPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6">
         <h1 className="text-2xl font-semibold flex items-center gap-2">
           <Inbox className="h-6 w-6" />
           Inbox
         </h1>
-        <button
-          onClick={() => void logout()}
-          className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
-        >
-          Sign out
-        </button>
       </div>
 
       <div className="mb-4">
