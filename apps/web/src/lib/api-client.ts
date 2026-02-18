@@ -83,6 +83,11 @@ export interface ProjectDTO {
   updatedAt: string;
 }
 
+export interface ProjectDetailDTO {
+  project: ProjectDTO;
+  tasks: TaskDTO[];
+}
+
 export interface TagDTO {
   id: string;
   name: string;
@@ -203,7 +208,7 @@ export const api = {
   getProjects: () => request<ProjectDTO[]>("GET", "/projects"),
 
   getProject: (projectId: string) =>
-    request<ProjectDTO>("GET", `/projects/${projectId}`),
+    request<ProjectDetailDTO>("GET", `/projects/${projectId}`),
 
   createProject: (data: { name: string; color?: string }) =>
     request<ProjectDTO>("POST", "/projects", data),
