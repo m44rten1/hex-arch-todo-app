@@ -10,6 +10,7 @@ export interface Task {
   readonly projectId: ProjectId | null;
   readonly dueAt: Date | null;
   readonly completedAt: Date | null;
+  readonly deletedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly ownerUserId: UserId;

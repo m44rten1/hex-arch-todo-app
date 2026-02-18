@@ -50,6 +50,7 @@ export function createTask(params: CreateTaskParams): Result<Task, TaskValidatio
     projectId: params.projectId ?? null,
     dueAt: params.dueAt ?? null,
     completedAt: null,
+    deletedAt: null,
     createdAt: params.now,
     updatedAt: params.now,
     ownerUserId: params.userId,

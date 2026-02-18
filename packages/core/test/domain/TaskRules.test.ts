@@ -31,6 +31,7 @@ function activeTask(overrides: Partial<Task> = {}): Task {
     projectId: null,
     dueAt: null,
     completedAt: null,
+    deletedAt: null,
     createdAt: NOW,
     updatedAt: NOW,
     ownerUserId: userId("user-1"),

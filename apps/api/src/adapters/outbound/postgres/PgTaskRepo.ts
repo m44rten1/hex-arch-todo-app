@@ -13,6 +13,7 @@ interface TaskRow {
   project_id: string | null;
   due_at: Date | null;
   completed_at: Date | null;
+  deleted_at: Date | null;
   created_at: Date;
   updated_at: Date;
   owner_user_id: string;
@@ -28,6 +29,7 @@ function rowToTask(row: TaskRow): Task {
     projectId: row.project_id ? projectId(row.project_id) : null,
     dueAt: row.due_at,
     completedAt: row.completed_at,
+    deletedAt: row.deleted_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     ownerUserId: userId(row.owner_user_id),
@@ -53,8 +55,8 @@ export class PgTaskRepo implements TaskRepo {
 
   async save(task: Task): Promise<void> {
     await this.pool.query(
-      `INSERT INTO tasks (id, title, status, notes, project_id, due_at, completed_at, created_at, updated_at, owner_user_id, workspace_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      `INSERT INTO tasks (id, title, status, notes, project_id, due_at, completed_at, deleted_at, created_at, updated_at, owner_user_id, workspace_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        ON CONFLICT (id) DO UPDATE SET
          title = EXCLUDED.title,
          status = EXCLUDED.status,
@@ -62,6 +64,7 @@ export class PgTaskRepo implements TaskRepo {
          project_id = EXCLUDED.project_id,
          due_at = EXCLUDED.due_at,
          completed_at = EXCLUDED.completed_at,
+         deleted_at = EXCLUDED.deleted_at,
          updated_at = EXCLUDED.updated_at`,
       [
         task.id,
@@ -71,6 +74,7 @@ export class PgTaskRepo implements TaskRepo {
         task.projectId,
         task.dueAt,
         task.completedAt,
+        task.deletedAt,
         task.createdAt,
         task.updatedAt,
         task.ownerUserId,
