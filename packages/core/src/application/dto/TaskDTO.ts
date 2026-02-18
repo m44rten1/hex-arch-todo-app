@@ -1,5 +1,5 @@
 import type { Task, TaskStatus } from "../../domain/task/Task.js";
-import type { TaskId, ProjectId, WorkspaceId, UserId, TagId } from "../../domain/shared/index.js";
+import type { TaskId, ProjectId, WorkspaceId, UserId, TagId, RecurrenceRuleId } from "../../domain/shared/index.js";
 
 export interface TaskDTO {
   readonly id: TaskId;
@@ -13,6 +13,7 @@ export interface TaskDTO {
   readonly deletedAt: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
+  readonly recurrenceRuleId: RecurrenceRuleId | null;
   readonly ownerUserId: UserId;
   readonly workspaceId: WorkspaceId;
 }
@@ -30,6 +31,7 @@ export function toTaskDTO(task: Task): TaskDTO {
     deletedAt: task.deletedAt?.toISOString() ?? null,
     createdAt: task.createdAt.toISOString(),
     updatedAt: task.updatedAt.toISOString(),
+    recurrenceRuleId: task.recurrenceRuleId,
     ownerUserId: task.ownerUserId,
     workspaceId: task.workspaceId,
   };

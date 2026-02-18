@@ -1,4 +1,4 @@
-import type { TaskId, ProjectId, WorkspaceId, UserId, TagId } from "../shared/index.js";
+import type { TaskId, ProjectId, WorkspaceId, UserId, TagId, RecurrenceRuleId } from "../shared/index.js";
 
 export type TaskStatus = "active" | "completed" | "canceled";
 
@@ -14,6 +14,7 @@ export interface Task {
   readonly deletedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+  readonly recurrenceRuleId: RecurrenceRuleId | null;
   readonly ownerUserId: UserId;
   readonly workspaceId: WorkspaceId;
 }

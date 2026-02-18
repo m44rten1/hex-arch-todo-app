@@ -16,6 +16,7 @@ export function rowToTask(row: TasksTable, tagIds: readonly TagId[]): Task {
     deletedAt: row.deleted_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    recurrenceRuleId: null,
     ownerUserId: userId(row.owner_user_id),
     workspaceId: workspaceId(row.workspace_id),
   };

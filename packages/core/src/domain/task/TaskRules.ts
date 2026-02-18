@@ -1,4 +1,4 @@
-import type { TaskId, ProjectId, WorkspaceId, UserId, TagId, Result, ValidationError, InvalidStateTransitionError } from "../shared/index.js";
+import type { TaskId, ProjectId, WorkspaceId, UserId, TagId, RecurrenceRuleId, Result, ValidationError, InvalidStateTransitionError } from "../shared/index.js";
 import { ok, err } from "../shared/index.js";
 import type { Task, TaskStatus } from "./Task.js";
 
@@ -18,6 +18,7 @@ export interface CreateTaskParams {
   readonly dueAt?: Date;
   readonly notes?: string;
   readonly tagIds?: readonly TagId[];
+  readonly recurrenceRuleId?: RecurrenceRuleId;
 }
 
 export interface UpdateTaskParams {
@@ -53,6 +54,7 @@ export function createTask(params: CreateTaskParams): Result<Task, TaskValidatio
     dueAt: params.dueAt ?? null,
     tagIds: params.tagIds ?? [],
     completedAt: null,
+    recurrenceRuleId: params.recurrenceRuleId ?? null,
     deletedAt: null,
     createdAt: params.now,
     updatedAt: params.now,
