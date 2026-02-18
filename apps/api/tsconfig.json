@@ -2,10 +2,11 @@
   "extends": "@todo/tsconfig/base.json",
   "compilerOptions": {
     "noEmit": true,
+    "outDir": "dist",
     "paths": {
       "@todo/core/*": ["../../packages/core/src/*"]
     }
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "test"]
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
