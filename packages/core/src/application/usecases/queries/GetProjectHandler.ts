@@ -1,5 +1,5 @@
 import type { Result, NotFoundError } from "../../../domain/shared/index.js";
-import { err } from "../../../domain/shared/index.js";
+import { ok, err } from "../../../domain/shared/index.js";
 import type { ProjectRepo } from "../../ports/outbound/ProjectRepo.js";
 import type { TaskRepo } from "../../ports/outbound/TaskRepo.js";
 import type { ProjectDTO } from "../../dto/ProjectDTO.js";
@@ -31,12 +31,9 @@ export class GetProjectHandler {
 
     const tasks = await this.taskRepo.findByProject(query.projectId);
 
-    return {
-      ok: true,
-      value: {
-        project: toProjectDTO(project),
-        tasks: tasks.map(toTaskDTO),
-      },
-    };
+    return ok({
+      project: toProjectDTO(project),
+      tasks: tasks.map(toTaskDTO),
+    });
   }
 }
