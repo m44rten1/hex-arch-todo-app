@@ -9,6 +9,7 @@
     "dev:mem": "tsx src/infrastructure/dev.ts",
     "start": "node dist/infrastructure/main.js",
     "test": "vitest run",
+    "test:pg": "vitest run test/integration-pg",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/"
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@testcontainers/postgresql": "^11.12.0",
     "@todo/tsconfig": "workspace:*",
     "@types/bcryptjs": "^3.0.0",
     "@types/pg": "^8.11.0",
